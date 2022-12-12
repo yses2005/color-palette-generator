@@ -1,0 +1,20 @@
+.swatch {
+  display: inline-block;
+  text-align: left;
+  }
+
+.palette_color {
+  background: none;
+  border: none;
+  outline: none;
+  width: 150px;
+  height: 100px;
+  border-radius: 10px;
+}
+
+.palette_color::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.palette_color::-webkit-color-swatch {
+  border: none;
+}
