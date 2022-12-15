@@ -5,7 +5,7 @@ import axios from 'axios';
 import './App.css';
 
 function App() {
-  const [customizer, setCustom] = useState(null);
+  const [customizer, setCustom] = useState("#000000");
   const [colorPalette, setPalette] = useState(null);
 
   const hex_to_rgb = (hex) => {
@@ -26,7 +26,7 @@ function App() {
     // const res = await axios.post('/api/', data).then((response) => {
     //   set(response.data.result)
     // });
-    const res = await axios.post('/api/', data);
+    const res = await axios.post('http://colormind.io/api/', JSON.stringify(data));
     setPalette(res.data.result)
     // setPalette(res);
   }

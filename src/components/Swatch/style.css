@@ -18,3 +18,18 @@
 .palette_color::-webkit-color-swatch {
   border: none;
 }
+
+.copier {
+  text-align: left;
+  border: none;
+  background: none;
+}
+
+.copier:hover {
+  background: yellow;
+}
+
+a {
+  color: black;
+  text-decoration: none;
+}

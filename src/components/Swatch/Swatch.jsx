@@ -20,25 +20,47 @@ const rgbToHex = (rgbColor) => {
     return `#${hexR}${hexG}${hexB}`;
 }
 
+const exportColor = (hexColor, rgbColor) => {
+    const data = {
+        'hex': hexColor,
+        'rgb': rgbColor
+    };
+    // console.log(JSON.stringify(data))
+    const download = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+
+    return download
+
+}
+
 export const Swatch = (props) => {
     const {rgbColor} = props;
-    // const hexColor = rgbToHex(rgbColor);
+    const hexColor = rgbToHex(rgbColor);
 
-    const [hexColor, setColor] = useState();
+    // const [hexColor, setColor] = useState();
 
-    useEffect(() => {
-        setColor(rgbToHex(rgbColor));
-    })
+    // useEffect(() => {
+    //     setColor(rgbToHex(rgbColor));
+    // })
 
     return (
         <div className="swatch">
 
-            <input type="color" value={hexColor} onChange={(e) => {setColor(e.target.value)}} className="palette_color"></input>
+            {/* <input type="color" value={hexColor} onChange={(e) => {setColor(e.target.value);}} className="palette_color"></input> */}
+            <input type="color" value={hexColor} className="palette_color"></input>
 
             <br />
-            {hexColor}
+            <button value={hexColor} onClick={(e) => {
+                navigator.clipboard.writeText(e.target.value);
+                alert("Successfully copied hex code!");
+            }} className="copier">{hexColor}</button>
+            {/* {hexColor} */}
             <br />
-            {`rgb(${rgbColor.join(', ')})`}
+            <button value={`rgb(${rgbColor.join(', ')})`} onClick={(e) => {
+                navigator.clipboard.writeText(e.target.value);
+                alert("Successfully copied rgb code!");
+            }} className="copier">{`rgb(${rgbColor.join(', ')})`}</button>
+            <br />
+            <a href={`data:${exportColor(hexColor, rgbColor)}`} download="color.json" className='copier'>Donwload</a>           
 
         </div>
     )
