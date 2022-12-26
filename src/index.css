@@ -29,3 +29,18 @@ code {
   display: flex;
   flex-direction: row;
 }
+
+.copier {
+  text-align: left;
+  border: none;
+  background: none;
+}
+
+.copier:hover {
+  background: yellow;
+}
+
+a {
+  color: black;
+  text-decoration: none;
+}
