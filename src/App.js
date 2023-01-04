@@ -7,7 +7,13 @@ import './App.css';
 function App() {
 
   const getRandomValue = (min, max) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    let randomVal = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    if (min < 0 && randomVal <= -min) {
+      randomVal = (Math.random() < 0.5 ? -1 : 1) * randomVal;
+    }
+
+    return randomVal;
   }
 
   const getRandomHsl = () => {
@@ -68,6 +74,22 @@ function App() {
     return [r, g, b];
   }
 
+  const calculateSaturation = (rgbColor) => {
+    const [r, g, b] = rgbColor;
+
+    const tempR = r / 255;
+    const tempG = g / 255;
+    const tempB = b / 255;
+
+    const cMax = Math.max(tempR, tempG, tempB);
+    const cMin = Math.min(tempR, tempG, tempB);
+
+    const delta = cMax - cMin;
+
+    const s = cMax !== 0 ? delta / cMax : 0;
+    return (Math.round(s * 10000)) / 10000;
+  }
+
   const rgbToHsv = (rgbColor) => {
     const [r, g, b] = rgbColor;
 
@@ -106,7 +128,7 @@ function App() {
     return [h, s, v];
   }
 
-  const getLuminance = (rgbColor) => {
+  const calculatetLuminance = (rgbColor) => {
     const temp = rgbColor.map((v) => {
       v /= 255;
       return v <= 0.03928
@@ -118,8 +140,8 @@ function App() {
   }
 
   const calculateContrast = (color1, color2) => {
-    const luminance1 = getLuminance(color1);
-    const luminance2 = getLuminance(color2);
+    const luminance1 = calculatetLuminance(color1);
+    const luminance2 = calculatetLuminance(color2);
 
    if (luminance1 > luminance2) {
     return ((luminance2 + 0.05) / (luminance1 + 0.05));
@@ -256,6 +278,7 @@ function App() {
 
     return hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
   }
+
 
 
   const modifyColor = ({ hsvColor, newHue = null, newSaturation = null, newValue = null }) => {
@@ -408,6 +431,7 @@ function App() {
 
   const [customizer, setCustom] = useState(getRandomRgb());
   const [colorPalette, setPalette] = useState(null);
+  // const [imgFile, setImg] = useState(null);
 
   const allColorData = (rgbColor) => {
     const colorData = {};
@@ -488,7 +512,235 @@ function App() {
     const download = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
 
     return download
-}
+  }
+
+  const buildRgb = (imageData, imageSize) => {
+    const rgbValues = [];
+    for (let i = 0, offset, r, g, b,a ; i < imageSize; i += 4) {
+      offset = i * 4;
+      r = imageData[offset];
+      g = imageData[offset + 1];
+      b = imageData[offset + 2];
+
+      // if 
+      // a = imageData[offset + 3];
+
+      rgbValues.push([r, g, b]);
+    }
+  
+    return rgbValues;
+  };
+
+  const findBiggestColorRange = (rgbValues) => {
+    let rMin = Number.MAX_VALUE;
+    let gMin = Number.MAX_VALUE;
+    let bMin = Number.MAX_VALUE;
+  
+    let rMax = Number.MIN_VALUE;
+    let gMax = Number.MIN_VALUE;
+    let bMax = Number.MIN_VALUE;
+  
+    rgbValues.forEach((pixel) => {
+      rMin = Math.min(rMin, pixel[0]);
+      gMin = Math.min(gMin, pixel[1]);
+      bMin = Math.min(bMin, pixel[2]);
+  
+      rMax = Math.max(rMax, pixel[0]);
+      gMax = Math.max(gMax, pixel[1]);
+      bMax = Math.max(bMax, pixel[2]);
+    });
+  
+    const rRange = rMax - rMin;
+    const gRange = gMax - gMin;
+    const bRange = bMax - bMin;
+  
+    const biggestRange = Math.max(rRange, gRange, bRange);
+    if (biggestRange === rRange) {
+      return 0; // 0: r
+    } 
+    else if (biggestRange === gRange) {
+      return 1; // 1: g
+    } 
+    else {
+      return 2; // 2: b
+    }
+  };
+
+  const quantizeColor = (rgbValues, depth) => {
+    const MAX_DEPTH = 4; // Returns 2^MAX_DEPTH colors
+  
+    // Base case
+    if (depth === MAX_DEPTH || rgbValues.length === 0) {
+      const color = rgbValues.reduce(
+        (prev, curr) => {
+          prev[0] += curr[0];
+          prev[1] += curr[1];
+          prev[2] += curr[2];
+  
+          return prev;
+        },
+        [0, 0, 0]
+      );
+  
+
+      color[0] = Math.round(color[0] / rgbValues.length);
+      color[1] = Math.round(color[1] / rgbValues.length);
+      color[2] = Math.round(color[2] / rgbValues.length);
+  
+      return [color];
+    }
+  
+    /**
+     *  Recursively do the following:
+     *  1. Find the pixel channel (red,green or blue) with biggest difference/range
+     *  2. Order by this channel
+     *  3. Divide in half the rgb colors list
+     *  4. Repeat process again, until desired depth or base case
+     */
+    const componentToSortBy = findBiggestColorRange(rgbValues);
+    rgbValues.sort((p1, p2) => {
+      return p1[componentToSortBy] - p2[componentToSortBy];
+    });
+  
+    const mid = rgbValues.length / 2;
+    return[
+      ...quantizeColor(rgbValues.slice(0, mid), depth + 1),
+      ...quantizeColor(rgbValues.slice(mid + 1), depth + 1),
+    ];
+  };
+
+  // const calculateHueDifference = (rgbValue, rgbValue)
+
+  const calculateColorDistance = (rgbValue1, rgbValue2) => {
+    // Calculates the squared distance between two rgb values
+    const distR = Math.pow(rgbValue1[0] - rgbValue2[0], 2);
+    const distG = Math.pow(rgbValue1[1] - rgbValue2[1], 2);
+    const distB = Math.pow(rgbValue1[2] - rgbValue2[2], 2);
+
+    return distR + distG + distB;
+  }
+
+  const isBlack = (rgbColor) => {
+    return (rgbColor[0] === 0) && (rgbColor[1] === 0) && (rgbColor[2] === 0);
+  }
+
+  const isWhite = (rgbColor) => {
+    return (rgbColor[0] === 255) && (rgbColor[1] === 255) && (rgbColor[2] === 255);
+  }
+
+  // const isColor = (rgbColor) => {
+  //   return (rgbColor[0] < 255 && rgbColor[0] > 0) || (rgbColor[1] < 255 && rgbColor[1] > 0) || (rgbColor[2] < 255 && rgbColor[2] > 0);
+  // }
+
+  const isColor = (rgbColor) => {
+    return calculateSaturation(rgbColor) !== 0;
+  }
+
+  const removeDuplicates = (rgbValues) => {
+    let tempValues = [rgbValues[0]];
+    let finalValues = [];
+
+    for (let i = 1, base = rgbValues[0], difference; i < rgbValues.length; i++) {
+      difference = calculateContrast(base, rgbValues[i]);
+
+      if (difference < 0.9) {
+        // console.log(difference);
+        tempValues.push(rgbValues[i]);
+        base = rgbValues[i];
+      }
+    }
+
+    for (const t of tempValues) {
+      if (isColor(t)) {
+        finalValues.push(t);
+      }
+    }
+
+    if (finalValues.length < 5) {
+      console.log(finalValues);
+      fillMissing(finalValues);
+    }
+    else if (finalValues.length > 5) {
+      finalValues = finalValues.slice(0, 5);
+    }
+
+
+    return finalValues;
+  }
+
+  const fillMissing = (rgbValues) => {
+    
+    for (let i = 0, pos, newColor; i < 5 - rgbValues.length; i++) {
+      pos = getRandomValue(0, rgbValues.length - 1);
+      newColor = modifyColor({hsvColor: rgbToHsv(rgbValues[pos]),
+        newHue: getRandomValue(-5, 5),
+        newSaturation: getRandomValue(-3, 3) / 100,
+        newValue: getRandomValue(-3, 3) / 100}
+        );
+      rgbValues.push(hsvToRgb(newColor));
+    };
+  }
+
+  const orderByLuminance = (rgbValues) => {
+    // Order the colors by relative luminance, lightest to darkest
+    rgbValues.sort((a, b) => { return calculatetLuminance(b) - calculatetLuminance(a); });
+  }
+  
+  const extractColors = (imgFile) => {
+    // const image = new Image();
+    // const fileReader = new FileReader();
+    // console.log(imgFile);
+
+    var URL = window.webkitURL || window.URL;
+    var imgUrl = URL.createObjectURL(imgFile);
+    var img = new Image();
+    img.src = imgUrl;
+
+    img.onload = () => {
+
+      // Set the canvas size to be the same as of the uploaded image
+      // const canvas = document.getElementById("canvas");
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+
+      /**
+       * getImageData returns an array full of RGBA values
+       * each pixel consists of four values: the red value of the colour, the green, the blue and the alpha
+       * (transparency). For array value consistency reasons,
+       * the alpha is not from 0 to 1 like it is in the RGBA of CSS, but from 0 to 255.
+       */
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Convert the image data to RGB values so its much simpler
+      // console.log(imageData.data);
+      // console.log(imageData.data.length);
+      // console.log(canvas.width * canvas.height);
+      // console.time('building');
+      const rgbArray = buildRgb(imageData.data, canvas.width * canvas.height);
+      // console.timeEnd('building');
+      // console.log(imageData);
+
+      /**
+       * Color quantization
+       * A process that reduces the number of colors used in an image
+       * while trying to visually maintin the original image as much as possible
+       */
+      // const quantColors = quantization(rgbArray, 0);
+      const quantColors = quantizeColor(rgbArray, 0);
+      orderByLuminance(quantColors);
+
+      const paletteColors = removeDuplicates(quantColors);
+      // console.log(removeDuplicates(quantColors));
+      // Create the HTML structure to show the color palette
+      // console.log(quantColors);
+      setPalette(paletteColors);
+    };
+
+    
+  }
 
 useEffect(() => {
   (async () => {
@@ -537,13 +789,16 @@ useEffect(() => {
       <button onClick={() => fetchPalette(getRandomRgb())}> Generate random palette </button>
       <button onClick={() => fetchPalette(customizer)}> Generate palette from color picker </button>
 
+      <input type="file" id="imgfile" onChange={(e) => { extractColors(e.target.files[0]); }} />
+
+
       <br />
 
       {colorPalette ? colorPalette.map((rawColor, index) => {return (<Swatch rgbColor={rawColor} onChange={(e) => {changePalette(index, hexToRgb(e.target.value));}} />)}) : null }
 
       <br />
-
-      <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a>
+{/* 
+      <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a> */}
 
     </div>
   );
