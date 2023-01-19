@@ -26,8 +26,8 @@ function App() {
 
   const getRandomHsv = () => {
     const h = getRandomValue(0, 359);
-    const s = getRandomValue(45, 100) / 100;
-    const v = getRandomValue(45, 100) / 100;
+    const s = getRandomValue(42, 95) / 100;
+    const v = getRandomValue(40, 95) / 100;
 
     return [h, s, v];
   }
@@ -156,52 +156,151 @@ function App() {
   }
 
   const complementaryColor = (hsvColor) => {
-    const [...newColor] = hsvColor;
+    const newColor = [...hsvColor];
     newColor[0] = (newColor[0] + 180) % 360;
 
     return newColor;
   }
 
-  const complement = (customColor) => {
-    const firstColor = rgbToHsv(customColor);
-    // const [...firstVariant1] = firstColor;
-    // const [...firstVariant2] = firstColor;
 
-    // const [...secondColor] = firstColor;
-    // secondColor[0] = (secondColor[0] + 180) % 360;
 
-    // const [...secondVariant] = secondColor;
+
+  const modifyColor = ({ hsvColor, newHue = hsvColor[0], newSaturation = hsvColor[1], newValue = hsvColor[2] }) => {
+    const newColor = [...hsvColor];
     
-    // Edit the hue, saturation, and value of the variants
+    newColor[0] = newHue < 0 ? newHue + 360 : newHue;
+    newColor[0] = newColor[0] % 360;
+    newColor[1] = newSaturation;
+    newColor[2] = newValue;
 
-
-    const [...secondColor] = firstColor; // color 2
-    secondColor[0] = (secondColor[0] + 180) % 360;
-
-    const [...thirdColor] = firstColor; // lighter color 1
-    // thirdColor[1] -= .02;
-    thirdColor[2] = getRandomValue(85, 90) / 100;
-
-
-    const [...fourthColor] = secondColor;  // lighter / darker color 1
-    // fourthColor[1] -= .02 ;
-    // fourthColor[2] = .9;
-    if (0.9 - fourthColor[2] > fourthColor[2] - 0.3) {
-      fourthColor[2] = getRandomValue(85, 90) / 100;
+    if (newColor[1] > 1) {
+      newColor[1] = newColor[1] - 0.8;
     }
-    else {
-      fourthColor[2] = getRandomValue(30, 35) / 100;
+    else if (newColor[1]  < 0) {
+      newColor[1] = newColor[1] + 1;
     }
 
+    if (newColor[2] > 1) {
+      newColor[2] = newColor[2] - 0.8;
+    }
+    else if (newColor[2] < 0) {
+      newColor[2] = newColor[2] + 1;
+    }
 
-    const [...fifthColor] = firstColor;  // darker color 1
-    fifthColor[2] = getRandomValue(30, 35) / 100;
+    return newColor;
+  }
+  
+  const complementH = (customColor) => {
+    const baseColor = rgbToHsv(customColor);
+    // const baseColor = modifyColor({
+    //   hsvColor: hsvCustom,
+    //   newSaturation: hsvCustom[1] * (getRandomValue(70, 80) / 100),
+    //   newValue: hsvCustom[2] * (getRandomValue(80, 90) / 100)
+    // });
 
-    const hsvPalette = [fifthColor, firstColor, thirdColor, secondColor, fourthColor];
+    const complementColor = complementaryColor(baseColor);
+
+    const baseVariant1 = modifyColor({
+      hsvColor: baseColor,
+      newSaturation: baseColor[1] + (getRandomValue(10, 20) / 100),
+      newValue: baseColor[2] - (getRandomValue(10, 20) / 100),
+    });
+
+    const baseVariant2 = modifyColor({
+      hsvColor: baseColor,
+      newSaturation: baseColor[1] - (getRandomValue(10, 20) / 100),
+      newValue: baseColor[2] + (getRandomValue(10, 20) / 100),
+    });
+
+    const complementVariant1 = modifyColor({
+      hsvColor: complementColor,
+      newSaturation: complementColor[1] + (getRandomValue(10, 20) / 100),
+      newValue: complementColor[2] - (getRandomValue(10, 20) / 100),
+    });
+    
+    const complementVariant2 = modifyColor({
+      hsvColor: complementColor,
+      newSaturation: complementColor[1] - (getRandomValue(10, 20) / 100),
+      newValue: complementColor[2] + (getRandomValue(10, 20) / 100),
+    });
+
+
+    const hsvPalette = [baseColor, baseVariant1, baseVariant2, complementColor, complementVariant1, complementVariant2];
     const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
+
+    orderByLuminance(rgbPalette);
+    rgbPalette.splice(2, 1);
+    orderByColor(rgbPalette);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 5;
+    const ctx = canvas.getContext("2d");
+
+    const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+
+    const baseRgb = hsvToRgb(baseColor);
+    const complementRgb = hsvToRgb(complementColor);
+
+    gradient.addColorStop(0, `rgb(${baseRgb[0]},${baseRgb[1]},${baseRgb[2]})`);
+    gradient.addColorStop(1, `rgb(${complementRgb[0]},${complementRgb[1]},${complementRgb[2]})`);
+    // let r, g, b;
+    // for (let rIdx in rgbPalette) {
+    //   [r, g, b] = rgbPalette[rIdx];
+    //   gradient.addColorStop(rIdx * 0.25, `rgb(${r},${g},${b})`);
+    // }
+    // console.log(canvas.width, canvas.height)
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 200, 5);
+
+    let rgbSwatch, rgbData;
+    for (let i = 0; i < 5; i++) {
+      rgbData = ctx.getImageData(40 * i, 0, 1, 1).data;
+      rgbSwatch = [rgbData[0], rgbData[1], rgbData[2]];
+      // console.log(rgbSwatch);
+      rgbPalette.push(rgbSwatch);
+    }
 
     return rgbPalette;
   }
+ 
+  const complement = (customColor) => {
+    const baseColor = rgbToHsv(customColor);
+    const complementColor = complementaryColor(baseColor);
+    let rgbPalette = [];
+    // const baseColor = modifyColor({
+    //   hsvColor: hsvCustom,
+    //   newSaturation: hsvCustom[1] * (getRandomValue(70, 80) / 100),
+    //   newValue: hsvCustom[2] * (getRandomValue(80, 90) / 100)
+    // });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 5;
+    const ctx = canvas.getContext("2d");
+
+    const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+
+    const baseRgb = hsvToRgb(baseColor);
+    const complementRgb = hsvToRgb(complementColor);
+
+    gradient.addColorStop(0, `rgb(${baseRgb[0]},${baseRgb[1]},${baseRgb[2]})`);
+    gradient.addColorStop(1, `rgb(${complementRgb[0]},${complementRgb[1]},${complementRgb[2]})`);
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 200, 5);
+
+    let rgbSwatch, rgbData;
+    for (let i = 0; i < 5; i++) {
+      rgbData = ctx.getImageData(getRandomValue(40, 45) * i, 0, 1, 1).data;
+      rgbSwatch = [rgbData[0], rgbData[1], rgbData[2]];
+      // console.log(rgbSwatch);
+      rgbPalette.push(rgbSwatch);
+    }
+
+    return rgbPalette;
+  }
+
 
   const monochrome = (customColor) => {
     // s: 20 40 60 80 100
@@ -279,36 +378,79 @@ function App() {
     return hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
   }
 
-
-
-  const modifyColor = ({ hsvColor, newHue = null, newSaturation = null, newValue = null }) => {
-    const newColor = [...hsvColor];
-    
-    if (newHue) {
-      newColor[0] = newHue < 0 ? newHue + 360 : newHue;
-      newColor[0] = newColor[0] % 360;
-    } 
-    if (newSaturation) newColor[1] = newSaturation;
-    if (newValue) newColor[2] = newValue;
-
-    return newColor;
-  }
-
   const analogic = (rgbColor) => {
     const baseColor = rgbToHsv(rgbColor);
-    const hueModifier = getRandomValue(13, 30);
+    const hueModifier = getRandomValue(15, 30);
 
-    const leftColor1 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] - hueModifier});
-    const leftColor2 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] - (2 * hueModifier)});
-    const rightColor1 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] + hueModifier});
-    const rightColor2 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] + (2 * hueModifier)});
+    const leftColor = modifyColor({hsvColor: baseColor, newHue: baseColor[0] - hueModifier});
 
-    const hsvPalette = [leftColor2, leftColor1, baseColor, rightColor1, rightColor2]
-    return hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
+    const rightColor = modifyColor({hsvColor: baseColor, newHue: baseColor[0] + hueModifier});
+
+    let leftDirection;
+    if (getRandomValue(-1, 1) > 0) {
+      leftDirection = 1
+    }
+    else {
+      leftDirection = -1
+    }
+
+    const leftColor2 = modifyColor({
+      hsvColor: leftColor, 
+      newSaturation: leftColor[1] +  (leftDirection * getRandomValue(10, 20) / 100),
+      newValue: leftColor[2] - (leftDirection * getRandomValue(10, 20) / 100),
+    });
+
+    let rightDirection;
+    if (getRandomValue(-1, 1) > 0) {
+      rightDirection = 1
+    }
+    else {
+      rightDirection = -1
+    }
+
+    const rightColor2 = modifyColor({
+      hsvColor: rightColor, 
+      newSaturation: rightColor[1] + (rightDirection * getRandomValue(10, 20) / 100),
+      newValue: rightColor[2] - (rightDirection * getRandomValue(10, 20) / 100),
+    });
+
+    const hsvPalette = [leftColor2, leftColor, baseColor, rightColor, rightColor2];
+    const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
+    
+    orderByLuminance(rgbPalette);
+    orderByColor(rgbPalette);
+
+    return rgbPalette;
+  }
+
+
+  const equivalentGrey = (rgbColor) => {
+    const luminance = calculatetLuminance(rgbColor);
+
+    let l = 0, r = 255;
+
+    let mid, midLum;
+    while (l < r) {
+      mid = (l + r) / 2;
+      midLum = calculatetLuminance([mid, mid, mid]);
+
+      if (midLum === luminance) {
+        break;
+      }
+      else if (midLum > luminance) {
+        r = mid - 1;
+      }
+      else {
+        l = mid + 1;
+      }  // midLum < luminance
+
+    }
+
+    return Math.round(mid);
   }
 
   const hslToRgb = (hslColor) => {
-    const {h, s, l} = hslColor;
+    const [h, s, l] = hslColor;
 
     const c = (1 - Math.abs((2 * l) - 1)) * s;
 
@@ -352,7 +494,47 @@ function App() {
     return [Math.round(r), Math.round(g), Math.round(b)];
   }
 
-  const rbgToHsl = (rgbColor) => {
+  // const rgbToHsl = (rgbColor) => {
+  //   const [r, g, b] = rgbColor;
+
+  //   const newR = r / 255;
+  //   const newG = g / 255;
+  //   const newB = b / 255;
+
+  //   const cMax = Math.max(newR, newG, newB);
+  //   const cMin = Math.min(newR, newG, newB);
+
+  //   const delta = cMax - cMin;
+  //   let h = 0, s = 0, l = 0;
+
+  //   // if (delta === 0) {
+  //   //     const 
+  //   // }
+  //   if (cMax === newR) {
+  //       h = 60 * (((newG - newB) / delta) % 6);
+  //   }
+  //   else if (cMax === newG) {
+  //       h = 60 * (((newB - newR) / delta) + 2);
+  //   }
+  //   else if (cMax === newB) {
+  //       h = 60 * (((newR - newG) / delta) + 4);
+  //   }
+
+  //   if (h <= 0) {
+  //     h = 360 - h;
+  //   }
+
+  //   l = (cMax + cMin) / 2;
+
+  //   if (delta !== 0) {
+  //       s = delta / (1 - Math.abs((2 * l) - 1));
+  //   }
+
+  //   return [`${Math.round(h)}`, `${Math.round(s * 100)}%`, `${Math.round(l * 100)}%`]
+  // }
+
+  
+  const rgbToHsl = (rgbColor) => {
     const [r, g, b] = rgbColor;
 
     const newR = r / 255;
@@ -365,9 +547,6 @@ function App() {
     const delta = cMax - cMin;
     let h = 0, s = 0, l = 0;
 
-    // if (delta === 0) {
-    //     const 
-    // }
     if (cMax === newR) {
         h = 60 * (((newG - newB) / delta) % 6);
     }
@@ -379,7 +558,7 @@ function App() {
     }
 
     if (h <= 0) {
-      h = 360 - h;
+      h = 360 + h;
     }
 
     l = (cMax + cMin) / 2;
@@ -388,7 +567,11 @@ function App() {
         s = delta / (1 - Math.abs((2 * l) - 1));
     }
 
-    return [`${Math.round(h)}`, `${Math.round(s * 100)}%`, `${Math.round(l * 100)}%`]
+    h = Math.round(h % 360);
+    s = (Math.round(s * 10000)) / 10000;
+    l = (Math.round(l * 10000)) / 10000;
+
+    return [h, s, l];
   }
 
   const valueToHex = (value) => {
@@ -431,41 +614,173 @@ function App() {
 
   const [customizer, setCustom] = useState(getRandomRgb());
   const [colorPalette, setPalette] = useState(null);
-  // const [imgFile, setImg] = useState(null);
+  
+  const newMonochrome = (rgbBase) => {
+    const hsvBase = rgbToHsv(rgbBase);
+    
 
-  const allColorData = (rgbColor) => {
-    const colorData = {};
 
-    colorData.rgb = rgbColor;
-    colorData.hex = rgbToHex(rgbColor);
-    colorData.hsl = rbgToHsl(rgbColor);
-    colorData.hsv = rgbToHsv(rgbColor);
 
-    return colorData;
+    const hsvPalette = [];
+    let darker = [...hsvBase];
+    let lighter = [...hsvBase];
+    let direction;
+
+    let minSat, maxSat;
+    let minVal, maxVal;
+    let modifier;
+    if (hsvBase[1] < 0.2 && hsvBase[2] < 0.2 ) {
+      // increase sat and value
+      console.log();
+    }
+    else if (hsvBase[1] < 0.2) {
+      // -2, 2, -5 5
+      minSat = -2;
+      maxSat = 2;
+
+      minVal = 5;
+      maxVal = 10;
+
+    }
+    else if (hsvBase[2] < 0.2) {
+      console.log();
+    }
+    else {
+      minSat = 10;
+      maxSat = 15;
+
+      minVal = 10;
+      maxVal = 12;
+
+    }
+
+    while (hsvPalette.length < 5) {
+      direction = getRandomValue(-1, 1);
+
+      if (direction === 1) {
+        darker[1] += getRandomValue(minSat, maxSat) / 100;
+        darker[2] -= getRandomValue(minVal, maxVal) / 100;
+
+        if (darker[1] > 1) {
+          darker[1] = darker[1] - 0.8;
+        }
+        else if (darker[1] < 0) {
+          darker[1] = 1  + darker[1];
+        }
+
+        if (darker[2] > 1) {
+          darker[2] = darker[2] - 0.8;
+        }
+        else if (darker[2] < 0) {
+          darker[2] = 1  + darker[2];
+        }
+
+        hsvPalette.push(darker);
+        darker = [...darker];
+      }
+      else {
+        lighter[1] -= getRandomValue(minSat, maxSat) / 100;
+        lighter[2] += getRandomValue(minVal, maxVal) / 100;
+
+        if (lighter[1] > 1) {
+          lighter[1] = lighter[1] - 0.8;
+        }
+        else if (lighter[1] < 0) {
+          lighter[1] = 1  + lighter[1];
+        }
+
+        if (lighter[2] > 1) {
+          lighter[2] = lighter[2] - 0.8;
+        }
+        else if (lighter[2] < 0) {
+          lighter[2] = 1 + lighter[2];
+        }
+
+        hsvPalette.push(lighter);
+        lighter = [...lighter];
+      }
+
+    }
+
+    // while (hsvPalette.length < 5) {
+    //   direction = getRandomValue(-1, 1);
+
+    //   if (direction === 1) {
+    //     darker[1] += getRandomValue(10, 15) / 100; // modifier
+    //     darker[2] -= getRandomValue(10, 12) / 100;
+
+    //     if (darker[1] > 1) {
+    //       darker[1] = darker[1] - 0.8;
+    //     }
+    //     else if (darker[1] < 0) {
+    //       darker[1] = 1  + darker[1];
+    //     }
+
+    //     if (darker[2] > 1) {
+    //       darker[2] = darker[2] - 0.8;
+    //     }
+    //     else if (darker[2] < 0) {
+    //       darker[2] = 1  + darker[2];
+    //     }
+
+    //     hsvPalette.push(darker);
+    //     darker = [...darker];
+    //   }
+    //   else {
+    //     lighter[1] -= getRandomValue(10, 15) / 100;
+    //     lighter[2] += getRandomValue(10, 12) / 100;
+
+    //     if (lighter[1] > 1) {
+    //       lighter[1] = lighter[1] - 0.8;
+    //     }
+    //     else if (lighter[1] < 0) {
+    //       lighter[1] = 1  + lighter[1];
+    //     }
+
+    //     if (lighter[2] > 1) {
+    //       lighter[2] = lighter[2] - 0.8;
+    //     }
+    //     else if (lighter[2] < 0) {
+    //       lighter[2] = 1 + lighter[2];
+    //     }
+
+    //     hsvPalette.push(lighter);
+    //     lighter = [...lighter];
+    //   }
+
+    // }
+
+    const rgbPalette = hsvPalette.map((hsvColor) => { return hsvToRgb(hsvColor); });
+    orderByLuminance(rgbPalette);
+    return rgbPalette;
   }
-
+    
   const fetchPalette = async (custom) => {
-    var data = {
-      model : "default",
-      input : [custom, "N", "N", "N", "N"],
-    }
-
-    const paletteMode = randomizeMode(custom);
-    const res = await axios.post('http://colormind.io/api/', JSON.stringify(data));
-
+    // fOR DEBUGGING
     let rawPalette;
-    if (paletteMode === 'random') {
-      rawPalette = res.data.result;
-    }
-    else if (paletteMode === 'monochrome') {
-      rawPalette = monochrome(res.data.result[0]);
-    }
-    else if (paletteMode === 'analogic') {
-      rawPalette = analogic(res.data.result[0]);
-    }
-    else if (paletteMode === 'complement') {
-      rawPalette = complement(res.data.result[0]);
-    }
+    rawPalette = complement(custom);
+
+    // const paletteMode = randomizeMode(custom);
+
+    // let rawPalette;
+    // if (paletteMode === 'random') {
+    //   var data = {
+    //     model : "default",
+    //     input : [custom, "N", "N", "N", "N"],
+    //   }
+      
+    //   rawPalette = await axios.post('http://colormind.io/api/', JSON.stringify(data));
+    //   rawPalette = rawPalette.data.result;
+    // }
+    // else if (paletteMode === 'monochrome') {
+    //   rawPalette = monochrome(custom);
+    // }
+    // else if (paletteMode === 'analogic') {
+    //   rawPalette = analogic(custom);
+    // }
+    // else if (paletteMode === 'complement') {
+    //   rawPalette = complement(custom);
+    // }
 
     setPalette(rawPalette);
   }
@@ -485,27 +800,27 @@ function App() {
         'swatch-1': {
           'rgb': palette[0],
           'hex': rgbToHex(palette[0]),
-          'hsl': rbgToHsl(palette[0])
+          'hsl': rgbToHsl(palette[0])
         },
         'swatch-2': {
           'rgb': palette[1],
           'hex': rgbToHex(palette[1]),
-          'hsl': rbgToHsl(palette[1])
+          'hsl': rgbToHsl(palette[1])
         },
         'swatch-3': {
           'rgb': palette[2],
           'hex': rgbToHex(palette[2]),
-          'hsl': rbgToHsl(palette[2])
+          'hsl': rgbToHsl(palette[2])
         },
         'swatch-4': {
           'rgb': palette[3],
           'hex': rgbToHex(palette[3]),
-          'hsl': rbgToHsl(palette[3])
+          'hsl': rgbToHsl(palette[3])
         },
         'swatch-5': {
           'rgb': palette[4],
           'hex': rgbToHex(palette[4]),
-          'hsl': rbgToHsl(palette[4])
+          'hsl': rgbToHsl(palette[4])
         },
     };
 
@@ -609,8 +924,6 @@ function App() {
     ];
   };
 
-  // const calculateHueDifference = (rgbValue, rgbValue)
-
   const calculateColorDistance = (rgbValue1, rgbValue2) => {
     // Calculates the squared distance between two rgb values
     const distR = Math.pow(rgbValue1[0] - rgbValue2[0], 2);
@@ -683,7 +996,22 @@ function App() {
 
   const orderByLuminance = (rgbValues) => {
     // Order the colors by relative luminance, lightest to darkest
-    rgbValues.sort((a, b) => { return calculatetLuminance(b) - calculatetLuminance(a); });
+    rgbValues.sort((a, b) => { 
+      const lumA = calculatetLuminance(a);
+      const lumB = calculatetLuminance(b);
+
+      return lumB - lumA; 
+    });
+  }
+
+  const orderByColor = (rgbValues) => {
+    // Order the colors by relative luminance, lightest to darkest
+    rgbValues.sort((a, b) => { 
+      const hueA = rgbToHsv(a)[0];
+      const hueB = rgbToHsv(b)[0];
+
+      return hueB - hueA; 
+    });
   }
   
   const extractColors = (imgFile) => {
@@ -772,7 +1100,6 @@ useEffect(() => {
 
   })();
   }, []);
-
 
   return (
     <div className="App">
