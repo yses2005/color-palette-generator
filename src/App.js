@@ -128,7 +128,7 @@ function App() {
     return [h, s, v];
   }
 
-  const calculatetLuminance = (rgbColor) => {
+  const calculateLuminance = (rgbColor) => {
     const temp = rgbColor.map((v) => {
       v /= 255;
       return v <= 0.03928
@@ -140,8 +140,8 @@ function App() {
   }
 
   const calculateContrast = (color1, color2) => {
-    const luminance1 = calculatetLuminance(color1);
-    const luminance2 = calculatetLuminance(color2);
+    const luminance1 = calculateLuminance(color1);
+    const luminance2 = calculateLuminance(color2);
 
    if (luminance1 > luminance2) {
     return ((luminance2 + 0.05) / (luminance1 + 0.05));
@@ -162,10 +162,7 @@ function App() {
     return newColor;
   }
 
-
-
-
-  const modifyColor = ({ hsvColor, newHue = hsvColor[0], newSaturation = hsvColor[1], newValue = hsvColor[2] }) => {
+  const createColor = ({ hsvColor, newHue = hsvColor[0], newSaturation = hsvColor[1], newValue = hsvColor[2] }) => {
     const newColor = [...hsvColor];
     
     newColor[0] = newHue < 0 ? newHue + 360 : newHue;
@@ -177,135 +174,133 @@ function App() {
       newColor[1] = newColor[1] - 0.8;
     }
     else if (newColor[1]  < 0) {
-      newColor[1] = newColor[1] + 1;
+      newColor[1] = newColor[1] + 0.8;
     }
 
     if (newColor[2] > 1) {
       newColor[2] = newColor[2] - 0.8;
     }
     else if (newColor[2] < 0) {
-      newColor[2] = newColor[2] + 1;
+      newColor[2] = newColor[2] + 0.8;
     }
 
     return newColor;
   }
-  
-  const complementH = (customColor) => {
-    const baseColor = rgbToHsv(customColor);
-    // const baseColor = modifyColor({
-    //   hsvColor: hsvCustom,
-    //   newSaturation: hsvCustom[1] * (getRandomValue(70, 80) / 100),
-    //   newValue: hsvCustom[2] * (getRandomValue(80, 90) / 100)
-    // });
 
-    const complementColor = complementaryColor(baseColor);
+  const modifyColor = ({ hsvColor, newHue = hsvColor[0], newSaturation = hsvColor[1], newValue = hsvColor[2] }) => {
+    hsvColor[0] = newHue < 0 ? newHue + 360 : newHue;
+    hsvColor[0] = hsvColor[0] % 360;
+    hsvColor[1] = newSaturation;
+    hsvColor[2] = newValue;
 
-    const baseVariant1 = modifyColor({
-      hsvColor: baseColor,
-      newSaturation: baseColor[1] + (getRandomValue(10, 20) / 100),
-      newValue: baseColor[2] - (getRandomValue(10, 20) / 100),
-    });
+    if (hsvColor[1] > 1) {
+      hsvColor[1] = hsvColor[1] - 0.8;
+    }
+    else if (hsvColor[1]  < 0) {
+      hsvColor[1] = hsvColor[1] + 0.8;
+    }
 
-    const baseVariant2 = modifyColor({
-      hsvColor: baseColor,
-      newSaturation: baseColor[1] - (getRandomValue(10, 20) / 100),
-      newValue: baseColor[2] + (getRandomValue(10, 20) / 100),
-    });
+    if (hsvColor[2] > 1) {
+      hsvColor[2] = hsvColor[2] - 0.8;
+    }
+    else if (hsvColor[2] < 0) {
+      hsvColor[2] = hsvColor[2] + 0.8;
+    }
+  }
 
-    const complementVariant1 = modifyColor({
-      hsvColor: complementColor,
-      newSaturation: complementColor[1] + (getRandomValue(10, 20) / 100),
-      newValue: complementColor[2] - (getRandomValue(10, 20) / 100),
-    });
+  const calculateContrastLum = (luminance1, luminance2) => {
+    if (luminance1 > luminance2) {
+      return ((luminance2 + 0.05) / (luminance1 + 0.05));
+     }
+     else {
+      return ((luminance1 + 0.05) / (luminance2 + 0.05));
+     }
+  }
+
+  const mixColor = (color1, color2) => {
+    const r = color1[0] + (0.5 * (color2[0] - color1[0]));
+    const g = color1[1] + (0.5 * (color2[1] - color1[1]));
+    const b = color1[2] + (0.5 * (color2[2] - color1[2]));
+
+    return [r, g, b];
+  }
+
+  const changeLuminance = (inputColor, targetLum) => {
+    let l, r, mid, midLum;
+    if (calculateLuminance(inputColor) > targetLum) {
+      l = [0, 0, 0];
+      r = inputColor;
+    }
+    else {
+      l = inputColor;
+      r = [255, 255, 255];
+    }
+
+    let DEPTH = 1000, EPS = 1e-5;
+
+    mid = mixColor(l, r);
+    midLum = calculateLuminance(mid);
     
-    const complementVariant2 = modifyColor({
-      hsvColor: complementColor,
-      newSaturation: complementColor[1] - (getRandomValue(10, 20) / 100),
-      newValue: complementColor[2] + (getRandomValue(10, 20) / 100),
-    });
-
-
-    const hsvPalette = [baseColor, baseVariant1, baseVariant2, complementColor, complementVariant1, complementVariant2];
-    const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
-
-    orderByLuminance(rgbPalette);
-    rgbPalette.splice(2, 1);
-    orderByColor(rgbPalette);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = 200;
-    canvas.height = 5;
-    const ctx = canvas.getContext("2d");
-
-    const gradient = ctx.createLinearGradient(0, 0, 200, 0);
-
-    const baseRgb = hsvToRgb(baseColor);
-    const complementRgb = hsvToRgb(complementColor);
-
-    gradient.addColorStop(0, `rgb(${baseRgb[0]},${baseRgb[1]},${baseRgb[2]})`);
-    gradient.addColorStop(1, `rgb(${complementRgb[0]},${complementRgb[1]},${complementRgb[2]})`);
-    // let r, g, b;
-    // for (let rIdx in rgbPalette) {
-    //   [r, g, b] = rgbPalette[rIdx];
-    //   gradient.addColorStop(rIdx * 0.25, `rgb(${r},${g},${b})`);
-    // }
-    // console.log(canvas.width, canvas.height)
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 200, 5);
-
-    let rgbSwatch, rgbData;
-    for (let i = 0; i < 5; i++) {
-      rgbData = ctx.getImageData(40 * i, 0, 1, 1).data;
-      rgbSwatch = [rgbData[0], rgbData[1], rgbData[2]];
-      // console.log(rgbSwatch);
-      rgbPalette.push(rgbSwatch);
+    while ( DEPTH--) {
+      mid = mixColor(l, r);
+      midLum = calculateLuminance(mid);
+      
+      if (midLum === targetLum) {
+        return mid;
+      }
+      else if (midLum < targetLum) {
+        l = mid
+      }
+      else { // midLum > target Lum
+        r = mid;
+      }
     }
 
-    return rgbPalette;
+    return mid;
   }
- 
-  const complement = (customColor) => {
-    const baseColor = rgbToHsv(customColor);
-    const complementColor = complementaryColor(baseColor);
-    let rgbPalette = [];
-    // const baseColor = modifyColor({
-    //   hsvColor: hsvCustom,
-    //   newSaturation: hsvCustom[1] * (getRandomValue(70, 80) / 100),
-    //   newValue: hsvCustom[2] * (getRandomValue(80, 90) / 100)
-    // });
+
+  const monochrome = (inputColor) => {
+    // Complies to W3C color contrast requirements
+    
+    const baseHsv = rgbToHsv(inputColor);
+    const baseLum = calculateLuminance(inputColor);
+
+    let compHsv = [...baseHsv];
+    while (calculateContrastLum(baseLum, calculateLuminance(hsvToRgb(compHsv))) > 0.2857) { // 1:4
+      modifyColor({
+        hsvColor: compHsv,
+        newSaturation: compHsv[1] + (getRandomValue(5, 10) / 100),
+        newValue: compHsv[2] - (getRandomValue(5, 10) / 100), 
+      });
+    } 
+
+    const compRgb = hsvToRgb(compHsv);
+    const rgbPalette = [];
 
     const canvas = document.createElement("canvas");
     canvas.width = 200;
-    canvas.height = 5;
-    const ctx = canvas.getContext("2d");
+    canvas.height = 1;
+    const ctx = canvas.getContext("2d", { willReadFrequently : true });
 
-    const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+    const grd = ctx.createLinearGradient(0,0,200,0);
+    grd.addColorStop(0,`rgb(${inputColor[0]}, ${inputColor[1]}, ${inputColor[2]})`);
+    grd.addColorStop(1,`rgb(${compRgb[0]}, ${compRgb[1]}, ${compRgb[2]})`);
 
-    const baseRgb = hsvToRgb(baseColor);
-    const complementRgb = hsvToRgb(complementColor);
+    ctx.fillStyle = grd;
+    ctx.fillRect(0,0,200,1);
 
-    gradient.addColorStop(0, `rgb(${baseRgb[0]},${baseRgb[1]},${baseRgb[2]})`);
-    gradient.addColorStop(1, `rgb(${complementRgb[0]},${complementRgb[1]},${complementRgb[2]})`);
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 200, 5);
-
-    let rgbSwatch, rgbData;
+    let swatch;
     for (let i = 0; i < 5; i++) {
-      rgbData = ctx.getImageData(getRandomValue(40, 45) * i, 0, 1, 1).data;
-      rgbSwatch = [rgbData[0], rgbData[1], rgbData[2]];
-      // console.log(rgbSwatch);
-      rgbPalette.push(rgbSwatch);
+      swatch = ctx.getImageData(i * getRandomValue(40, 45), 0, 1, 1).data;
+      rgbPalette.push([swatch[0], swatch[1], swatch[2]])
     }
+
+    console.log(calculateContrast(inputColor, compRgb));
 
     return rgbPalette;
   }
 
-
-  const monochrome = (customColor) => {
-    // s: 20 40 60 80 100
-    // v: 20 40 60 80 100
-
+  const monochromeAlt1 = (customColor) => {
     const baseColor = rgbToHsv(customColor);
 
     let hsvPalette = [];
@@ -320,6 +315,11 @@ function App() {
       color3[2] = getRandomValue(65, 80) / 100;
       color4[2] = getRandomValue(85, 100) / 100;
 
+      color1[1] += getRandomValue(-5, 5) / 100;
+      color2[1] += getRandomValue(-5, 5) / 100;
+      color3[1] += getRandomValue(-5, 5) / 100;
+      color4[1] += getRandomValue(-5, 5) / 100;
+
       hsvPalette = [baseColor, color1, color2, color3, color4];
     }
     else if (baseColor[2] <= 0.40) {
@@ -332,6 +332,12 @@ function App() {
       color2[2] = getRandomValue(45, 60) / 100;
       color3[2] = getRandomValue(65, 80) / 100;
       color4[2] = getRandomValue(85, 100) / 100;
+
+      color1[1] += getRandomValue(-5, 5) / 100;
+      color2[1] += getRandomValue(-5, 5) / 100;
+      color3[1] += getRandomValue(-5, 5) / 100;
+      color4[1] += getRandomValue(-5, 5) / 100;
+
 
       hsvPalette = [color1, baseColor, color2, color3, color4];
     }
@@ -346,6 +352,12 @@ function App() {
       color3[2] = getRandomValue(65, 80) / 100;
       color4[2] = getRandomValue(85, 100) / 100;
 
+      color1[1] += getRandomValue(-5, 5) / 100;
+      color2[1] += getRandomValue(-5, 5) / 100;
+      color3[1] += getRandomValue(-5, 5) / 100;
+      color4[1] += getRandomValue(-5, 5) / 100;
+
+
       hsvPalette = [color1, color2, baseColor, color3, color4];
     }
     else if (baseColor[2] <= 0.80) {
@@ -358,6 +370,11 @@ function App() {
       color2[2] = getRandomValue(25, 40) / 100;
       color3[2] = getRandomValue(45, 60) / 100;
       color4[2] = getRandomValue(85, 100) / 100;
+
+      color1[1] += getRandomValue(-5, 5) / 100;
+      color2[1] += getRandomValue(-5, 5) / 100;
+      color3[1] += getRandomValue(-5, 5) / 100;
+      color4[1] += getRandomValue(-5, 5) / 100;
 
       hsvPalette = [color1, color2, color3, baseColor, color4];
     }
@@ -372,19 +389,161 @@ function App() {
       color3[2] = getRandomValue(45, 60) / 100;
       color4[2] = getRandomValue(65, 80) / 100;
 
+      color1[1] += getRandomValue(-5, 5) / 100;
+      color2[1] += getRandomValue(-5, 5) / 100;
+      color3[1] += getRandomValue(-5, 5) / 100;
+      color4[1] += getRandomValue(-5, 5) / 100;
+
       hsvPalette = [color1, color2, color3, color4, baseColor];
     } 
+    
+    const rgbPalette = hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
+    console.log(calculateContrast(rgbPalette[0], rgbPalette[4]));
+    return rgbPalette;
+  }
 
-    return hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
+  const monochromeAlt2 = (inputColor) => {
+    // s: 20 40 60 80 100
+    // v: 20 40 60 80 100
+    const baseHsv = rgbToHsv(inputColor);
+    const baseHsl = rgbToHsl(inputColor);
+    const baseLum = calculateLuminance(inputColor);
+
+    let hsvPalette = [baseHsv];
+    for (let i = 0; i < 3; i++) {
+      hsvPalette.push(createColor({
+        hsvColor: hsvPalette[i],
+        newSaturation: hsvPalette[i][1] + (getRandomValue(10, 15) / 100),
+        newValue: hsvPalette[i][2] - (getRandomValue(10, 15) / 100),
+      }))
+    }
+    var l2 = ( ( baseLum + 0.05 ) / 3.5 - 0.05 );
+    if (l2 < 0) {
+      l2 = ( 3.5 * ( baseLum + 0.05 ) - 0.05 );
+    }
+
+    hsvPalette.push(([baseHsl[0], baseHsl[1], l2]))
+
+    
+    const rgbPalette = hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
+    orderByLuminance(rgbPalette);
+    console.log(calculateContrast(rgbPalette[0], rgbPalette[4]));
+    return rgbPalette;
+  }
+
+  const complement = (inputColor) => {
+    const baseColor = rgbToHsv(inputColor);
+    
+    // Modify baseColor to make it less saturated/more saturated
+    // if (baseColor[1] > 0.90) {
+    //   baseColor[1] = getRandomValue(90 - ((baseColor[1] - 0.90) * 100), 90) / 100;
+      
+    // } else if (baseColor[1] < 0.20) {  
+    //   baseColor[1] = getRandomValue(20, 20 + ((0.20 - baseColor[1]) * 100)) / 100;
+    // }
+
+    // if (baseColor[2] > 0.90) {
+    //   baseColor[2] = getRandomValue(90 - ((baseColor[2] - 0.90) * 100), 90) / 100;
+      
+    // } else if (baseColor[1] < 0.20) {  
+    //   baseColor[2] = getRandomValue(20, 20 + ((0.20 - baseColor[2]) * 100)) / 100;
+    // }
+    let depth = 100;
+    let compColor = complementaryColor(baseColor);
+    while (calculateContrast(inputColor, hsvToRgb(compColor)) > 0.2857 || depth--) { // 1:4
+      // prevComp = [...currComp];
+      modifyColor({
+        hsvColor: compColor,
+        newSaturation: compColor[1] + 0.01,
+        newValue: compColor[2] - 0.01,
+      });
+      // console.log(compColor)
+    } 
+
+    const hsvPalette = [];
+
+    hsvPalette.push(baseColor);
+
+    hsvPalette.push(createColor({ 
+      hsvColor: hsvPalette[0],
+      newSaturation: hsvPalette[0][1] + (getRandomValue(10, 20) / 100),
+      newValue: hsvPalette[0][2] - (getRandomValue(10, 20) / 100),
+    }));
+
+    hsvPalette.push(createColor({
+      hsvColor: hsvPalette[1],
+      newSaturation: hsvPalette[1][1] + (getRandomValue(10, 20) / 100),
+      newValue: hsvPalette[1][2] - (getRandomValue(10, 20) / 100),
+    }));
+
+    hsvPalette.push(createColor({
+      hsvColor: compColor,
+      newSaturation: compColor[1] + (getRandomValue(10, 20) / 100),
+      newValue: compColor[2] - (getRandomValue(10, 20) / 100),
+    }));
+    
+    hsvPalette.push(compColor);
+
+    // hsvPalette.push()
+    
+    const rgbPalette = hsvPalette.map((hsvColor) => { return hsvToRgb(hsvColor); });
+  //  console.log(calculateContrast(rgbPalette[0], rgbPalette[4]));
+
+    return rgbPalette;
+  }
+   
+  const complementAlt = (customColor) => {
+    const baseColor = rgbToHsv(customColor);
+    // const baseColor = modifyColor({
+    //   hsvColor: hsvCustom,
+    //   newSaturation: hsvCustom[1] * (getRandomValue(70, 80) / 100),
+    //   newValue: hsvCustom[2] * (getRandomValue(80, 90) / 100)
+    // });
+
+    const complementColor = complementaryColor(baseColor);
+
+    const baseVariant1 = createColor({
+      hsvColor: baseColor,
+      newSaturation: baseColor[1] + (getRandomValue(10, 20) / 100),
+      newValue: baseColor[2] - (getRandomValue(10, 20) / 100),
+    });
+
+    const baseVariant2 = createColor({
+      hsvColor: baseColor,
+      newSaturation: baseColor[1] - (getRandomValue(10, 20) / 100),
+      newValue: baseColor[2] + (getRandomValue(10, 20) / 100),
+    });
+
+    const complementVariant1 = createColor({
+      hsvColor: complementColor,
+      newSaturation: complementColor[1] + (getRandomValue(10, 20) / 100),
+      newValue: complementColor[2] - (getRandomValue(10, 20) / 100),
+    });
+    
+    const complementVariant2 = createColor({
+      hsvColor: complementColor,
+      newSaturation: complementColor[1] - (getRandomValue(10, 20) / 100),
+      newValue: complementColor[2] + (getRandomValue(10, 20) / 100),
+    });
+
+
+    const hsvPalette = [baseColor, baseVariant1, baseVariant2, complementColor, complementVariant1, complementVariant2];
+    const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
+
+    orderByLuminance(rgbPalette);
+    rgbPalette.splice(2, 1);
+    orderByColor(rgbPalette);
+
+    return rgbPalette;
   }
 
   const analogic = (rgbColor) => {
     const baseColor = rgbToHsv(rgbColor);
     const hueModifier = getRandomValue(15, 30);
 
-    const leftColor = modifyColor({hsvColor: baseColor, newHue: baseColor[0] - hueModifier});
+    const leftColor = createColor({hsvColor: baseColor, newHue: baseColor[0] - hueModifier});
 
-    const rightColor = modifyColor({hsvColor: baseColor, newHue: baseColor[0] + hueModifier});
+    const rightColor = createColor({hsvColor: baseColor, newHue: baseColor[0] + hueModifier});
 
     let leftDirection;
     if (getRandomValue(-1, 1) > 0) {
@@ -394,7 +553,7 @@ function App() {
       leftDirection = -1
     }
 
-    const leftColor2 = modifyColor({
+    const leftColor2 = createColor({
       hsvColor: leftColor, 
       newSaturation: leftColor[1] +  (leftDirection * getRandomValue(10, 20) / 100),
       newValue: leftColor[2] - (leftDirection * getRandomValue(10, 20) / 100),
@@ -408,7 +567,7 @@ function App() {
       rightDirection = -1
     }
 
-    const rightColor2 = modifyColor({
+    const rightColor2 = createColor({
       hsvColor: rightColor, 
       newSaturation: rightColor[1] + (rightDirection * getRandomValue(10, 20) / 100),
       newValue: rightColor[2] - (rightDirection * getRandomValue(10, 20) / 100),
@@ -423,16 +582,15 @@ function App() {
     return rgbPalette;
   }
 
-
-  const equivalentGrey = (rgbColor) => {
-    const luminance = calculatetLuminance(rgbColor);
+  const equivalentGray = (rgbColor) => {
+    const luminance = calculateLuminance(rgbColor);
 
     let l = 0, r = 255;
 
     let mid, midLum;
     while (l < r) {
       mid = (l + r) / 2;
-      midLum = calculatetLuminance([mid, mid, mid]);
+      midLum = calculateLuminance([mid, mid, mid]);
 
       if (midLum === luminance) {
         break;
@@ -493,46 +651,6 @@ function App() {
     // console.log(r, g, b);
     return [Math.round(r), Math.round(g), Math.round(b)];
   }
-
-  // const rgbToHsl = (rgbColor) => {
-  //   const [r, g, b] = rgbColor;
-
-  //   const newR = r / 255;
-  //   const newG = g / 255;
-  //   const newB = b / 255;
-
-  //   const cMax = Math.max(newR, newG, newB);
-  //   const cMin = Math.min(newR, newG, newB);
-
-  //   const delta = cMax - cMin;
-  //   let h = 0, s = 0, l = 0;
-
-  //   // if (delta === 0) {
-  //   //     const 
-  //   // }
-  //   if (cMax === newR) {
-  //       h = 60 * (((newG - newB) / delta) % 6);
-  //   }
-  //   else if (cMax === newG) {
-  //       h = 60 * (((newB - newR) / delta) + 2);
-  //   }
-  //   else if (cMax === newB) {
-  //       h = 60 * (((newR - newG) / delta) + 4);
-  //   }
-
-  //   if (h <= 0) {
-  //     h = 360 - h;
-  //   }
-
-  //   l = (cMax + cMin) / 2;
-
-  //   if (delta !== 0) {
-  //       s = delta / (1 - Math.abs((2 * l) - 1));
-  //   }
-
-  //   return [`${Math.round(h)}`, `${Math.round(s * 100)}%`, `${Math.round(l * 100)}%`]
-  // }
-
   
   const rgbToHsl = (rgbColor) => {
     const [r, g, b] = rgbColor;
@@ -756,31 +874,30 @@ function App() {
   }
     
   const fetchPalette = async (custom) => {
-    // fOR DEBUGGING
-    let rawPalette;
-    rawPalette = complement(custom);
-
-    // const paletteMode = randomizeMode(custom);
-
+    // // fOR DEBUGGING
     // let rawPalette;
-    // if (paletteMode === 'random') {
-    //   var data = {
-    //     model : "default",
-    //     input : [custom, "N", "N", "N", "N"],
-    //   }
+    // rawPalette = complement(custom);
+    const paletteMode = randomizeMode(custom);
+
+    let rawPalette;
+    if (paletteMode === 'random') {
+      var data = {
+        model : "default",
+        input : [custom, "N", "N", "N", "N"],
+      }
       
-    //   rawPalette = await axios.post('http://colormind.io/api/', JSON.stringify(data));
-    //   rawPalette = rawPalette.data.result;
-    // }
-    // else if (paletteMode === 'monochrome') {
-    //   rawPalette = monochrome(custom);
-    // }
-    // else if (paletteMode === 'analogic') {
-    //   rawPalette = analogic(custom);
-    // }
-    // else if (paletteMode === 'complement') {
-    //   rawPalette = complement(custom);
-    // }
+      rawPalette = await axios.post('http://colormind.io/api/', JSON.stringify(data));
+      rawPalette = rawPalette.data.result;
+    }
+    else if (paletteMode === 'monochrome') {
+      rawPalette = monochrome(custom);
+    }
+    else if (paletteMode === 'analogic') {
+      rawPalette = analogic(custom);
+    }
+    else if (paletteMode === 'complement') {
+      rawPalette = complement(custom);
+    }
 
     setPalette(rawPalette);
   }
@@ -924,27 +1041,6 @@ function App() {
     ];
   };
 
-  const calculateColorDistance = (rgbValue1, rgbValue2) => {
-    // Calculates the squared distance between two rgb values
-    const distR = Math.pow(rgbValue1[0] - rgbValue2[0], 2);
-    const distG = Math.pow(rgbValue1[1] - rgbValue2[1], 2);
-    const distB = Math.pow(rgbValue1[2] - rgbValue2[2], 2);
-
-    return distR + distG + distB;
-  }
-
-  const isBlack = (rgbColor) => {
-    return (rgbColor[0] === 0) && (rgbColor[1] === 0) && (rgbColor[2] === 0);
-  }
-
-  const isWhite = (rgbColor) => {
-    return (rgbColor[0] === 255) && (rgbColor[1] === 255) && (rgbColor[2] === 255);
-  }
-
-  // const isColor = (rgbColor) => {
-  //   return (rgbColor[0] < 255 && rgbColor[0] > 0) || (rgbColor[1] < 255 && rgbColor[1] > 0) || (rgbColor[2] < 255 && rgbColor[2] > 0);
-  // }
-
   const isColor = (rgbColor) => {
     return calculateSaturation(rgbColor) !== 0;
   }
@@ -985,7 +1081,7 @@ function App() {
     
     for (let i = 0, pos, newColor; i < 5 - rgbValues.length; i++) {
       pos = getRandomValue(0, rgbValues.length - 1);
-      newColor = modifyColor({hsvColor: rgbToHsv(rgbValues[pos]),
+      newColor = createColor({hsvColor: rgbToHsv(rgbValues[pos]),
         newHue: getRandomValue(-5, 5),
         newSaturation: getRandomValue(-3, 3) / 100,
         newValue: getRandomValue(-3, 3) / 100}
@@ -997,8 +1093,8 @@ function App() {
   const orderByLuminance = (rgbValues) => {
     // Order the colors by relative luminance, lightest to darkest
     rgbValues.sort((a, b) => { 
-      const lumA = calculatetLuminance(a);
-      const lumB = calculatetLuminance(b);
+      const lumA = calculateLuminance(a);
+      const lumB = calculateLuminance(b);
 
       return lumB - lumA; 
     });
