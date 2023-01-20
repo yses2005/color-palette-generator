@@ -1,10 +1,15 @@
 import logo from './logo.svg';
 import { useEffect, useState } from 'react';
 import { Swatch } from './components/Swatch';
-import axios from 'axios';
+import chroma from "chroma-js";
 import './App.css';
 
 function App() {
+  const BLACK = chroma('black');
+  const WHITE = chroma('white');
+  const BLWT = [BLACK, WHITE];
+  const BW = [BLACK.luminance(), WHITE.luminance()];
+
 
   const getRandomValue = (min, max) => {
     let randomVal = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -32,47 +37,6 @@ function App() {
     return [h, s, v];
   }
 
-  const hsvToRgb = (hsvColor) => {
-    const [h, s, v] = hsvColor;
-
-    const c = v * s;
-
-    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-
-    const m = v - c;
-
-    let tempR = 0, tempG = 0, tempB = 0;
-    if (h < 60) {
-      tempR = c;
-      tempG = x;
-    }
-    else if (h < 120) {
-      tempR = x;
-      tempG = c;
-    }
-    else if (h < 180) {
-      tempG = c;
-      tempB = x;
-    }
-    else if (h < 240) {
-      tempG = x;
-      tempB = c;
-    }
-    else if (h < 300) {
-      tempR = x;
-      tempB = c;
-    }
-    else if (h < 360) {
-      tempR = c;
-      tempB = x;
-    }
-
-    const r = Math.round((tempR + m) * 255);
-    const g = Math.round((tempG + m) * 255);
-    const b = Math.round((tempB + m) * 255);
-
-    return [r, g, b];
-  }
 
   const calculateSaturation = (rgbColor) => {
     const [r, g, b] = rgbColor;
@@ -88,44 +52,6 @@ function App() {
 
     const s = cMax !== 0 ? delta / cMax : 0;
     return (Math.round(s * 10000)) / 10000;
-  }
-
-  const rgbToHsv = (rgbColor) => {
-    const [r, g, b] = rgbColor;
-
-    const tempR = r / 255;
-    const tempG = g / 255;
-    const tempB = b / 255;
-
-    const cMax = Math.max(tempR, tempG, tempB);
-    const cMin = Math.min(tempR, tempG, tempB);
-
-    const delta = cMax - cMin;
-
-    let h = 0, s = 0, v = cMax;
-    if (cMax !== 0) {
-      s = delta / cMax
-    }
-
-    if (cMax === tempR) {
-      h = 60 * (((tempG - tempB) / delta) % 6);
-    }
-    else if (cMax === tempG) {
-        h = 60 * (((tempB - tempR) / delta) + 2);
-    }
-    else if (cMax === tempB) {
-        h = 60 * (((tempR - tempG) / delta) + 4);
-    }
-
-    if (h < 0) {
-      h = 360 + h;
-    }
-
-    h = Math.round(h % 360);
-    s = (Math.round(s * 10000)) / 10000;
-    v = (Math.round(v * 10000)) / 10000;
-
-    return [h, s, v];
   }
 
   const calculateLuminance = (rgbColor) => {
@@ -295,9 +221,15 @@ function App() {
       rgbPalette.push([swatch[0], swatch[1], swatch[2]])
     }
 
-    console.log(calculateContrast(inputColor, compRgb));
+    // let r;
+    // for (let temp of rgbPalette) {
+    //   r = chroma(temp);
+    //   console.log(chroma.contrast(r, 'black'), chroma.contrast(r, 'white'));
+    //   // r = chroma(temp);
+    //   // console.log(chroma.contrast(r, 'black'), chroma.contrast('white'));
+    // }
 
-    return rgbPalette;
+    return Promise.resolve(rgbPalette);
   }
 
   const monochromeAlt1 = (customColor) => {
@@ -432,6 +364,172 @@ function App() {
   }
 
   const complement = (inputColor) => {
+    let baseColor = chroma(inputColor);
+    let compColor = chroma(inputColor.map((channel) => { return (255 - channel); }));
+
+    let rgbPalette = [];
+    // let prevRatio = 2.5, currRatio, lum1, lum2;
+    // for (let i = 0; i < 3; i++) {
+    //   lum1 = BW[getRandomValue(0, 1)];
+    //   currRatio = getRandomValue((prevRatio + 2) * 10, (prevRatio + 4) * 10) / 10;
+
+    //   lum2 = ((lum1 + 0.05) / currRatio + 0.05);
+    //   if (lum2 < 0) {
+    //     lum2 = (currRatio * ( lum1 + 0.05 ) - 0.05);
+    //   }
+
+    //   console.log(ratio);
+
+    //   rgbPalette.push(baseColor.luminance(lum2).rgb());
+    //   prevRatio = currRatio;
+    // }
+
+    orderByLuminance(rgbPalette);
+    let ratio, comparison, lum1, lum2;
+    let base1, base2, base3;
+    let darkComp, lightComp;
+    let mod1, mod2;
+    // mid base 
+    comparison = getRandomValue(0, 1);
+    lum1 = BW[comparison];
+    ratio = getRandomValue(25, 45) / 10
+
+    lum2 = ((lum1 + 0.05) / ratio + 0.05);
+    if (lum2 < 0) {
+      lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    }
+
+    base1 = baseColor.luminance(lum2);
+    rgbPalette.push(base1);
+    
+    lum1 = BW[0];
+    ratio = getRandomValue(100, 120) / 10;
+
+    lum2 = ((lum1 + 0.05) / ratio + 0.05);
+    if (lum2 < 0) {
+      lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    }
+
+    base2 = base1.darken();
+    rgbPalette.push(base2);
+
+    base3 = base1.brighten()
+    rgbPalette.push(base3);
+
+  
+
+
+    rgbPalette = rgbPalette.map((chromaColor) => { return chromaColor.rgb(); });
+
+    orderByLuminance(rgbPalette);
+
+    rgbPalette.push([255 - rgbPalette[2][0], 255 - rgbPalette[2][1], 255 - rgbPalette[2][2]])
+    const idx = getRandomValue(0, 1);
+    rgbPalette.push([255 - rgbPalette[idx][0], 255 - rgbPalette[idx][1], 255 - rgbPalette[idx][2]])
+
+
+    return Promise.resolve(rgbPalette);
+  }
+
+  const complementAlt3 = (inputColor) => {
+    let baseColor = chroma(inputColor);
+    let compColor = chroma(inputColor.map((channel) => { return (255 - channel); }));
+
+    let rgbPalette = [];
+    // let prevRatio = 2.5, currRatio, lum1, lum2;
+    // for (let i = 0; i < 3; i++) {
+    //   lum1 = BW[getRandomValue(0, 1)];
+    //   currRatio = getRandomValue((prevRatio + 2) * 10, (prevRatio + 4) * 10) / 10;
+
+    //   lum2 = ((lum1 + 0.05) / currRatio + 0.05);
+    //   if (lum2 < 0) {
+    //     lum2 = (currRatio * ( lum1 + 0.05 ) - 0.05);
+    //   }
+
+    //   console.log(ratio);
+
+    //   rgbPalette.push(baseColor.luminance(lum2).rgb());
+    //   prevRatio = currRatio;
+    // }
+
+    orderByLuminance(rgbPalette);
+    let ratio, comparison, lum1, lum2;
+    let base1, base2, base3;
+    let darkComp, lightComp;
+    let mod1, mod2;
+    // mid base 
+    comparison = getRandomValue(0, 1);
+    lum1 = BW[comparison];
+    ratio = getRandomValue(25, 45) / 10
+
+    lum2 = ((lum1 + 0.05) / ratio + 0.05);
+    if (lum2 < 0) {
+      lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    }
+
+    base1 = baseColor.luminance(lum2);
+    console.log(comparison, ratio, chroma.contrast(base1, 'black'), chroma.contrast(base1, 'white'));
+    rgbPalette.push(base1);
+    // if (comparison === 1) {
+    //   rgbPalette.push(baseColor.darken(1).luminance(lum2));
+    // }
+    // else {
+    //   rgbPalette.push(baseColor.brighten(1).luminance(lum2));
+    // }
+    
+
+    lum1 = BW[comparison];
+    ratio = getRandomValue(100, 120) / 10;
+
+    lum2 = ((lum1 + 0.05) / ratio + 0.05);
+    if (lum2 < 0) {
+      lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    }
+
+    base2 = base1.darken();
+    console.log(comparison, ratio, chroma.contrast(base2, 'black'), chroma.contrast(base2, 'white'));
+    rgbPalette.push(base2);
+
+    base3 = base1.brighten()
+    console.log(comparison, ratio, chroma.contrast(base3, 'black'), chroma.contrast(base3, 'white'));
+    rgbPalette.push(base3);
+
+    // rgbPalette.push(baseColor.luminance(lum2));
+    // if (comparison === 1) {
+    //   rgbPalette.push(baseColor.darken(2).luminance(lum2));
+    // }
+    // else {
+    //   rgbPalette.push(baseColor.brighten(12).luminance(lum2));
+    // }
+
+    // console.log(calculateContrastLum(BW[comparison], rgbPalette[0].luminance()))
+    // console.log(calculateContrastLum(BW[comparison], rgbPalette[1].luminance()))
+
+    // comparison = comparison === 1 ? 0 : 1;
+    // lum1 = BW[comparison];
+    // ratio = getRandomValue(45, 120) / 10;
+
+    // lum2 = ((lum1 + 0.05) / ratio + 0.05);
+    // if (lum2 < 0) {
+    //   lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    // }
+
+    // rgbPalette.push(baseColor.luminance(lum2));
+    // if (comparison === 1) {
+    //   rgbPalette.push(baseColor.darken(2).luminance(lum2));
+    // }
+    // else {
+    //   rgbPalette.push(baseColor.brighten(2).luminance(lum2));
+    // }
+
+
+    rgbPalette = rgbPalette.map((chromaColor) => { return chromaColor.rgb(); });
+
+    orderByLuminance(rgbPalette);
+    return rgbPalette;
+  }
+
+  const complementAlt1 = (inputColor) => {
     const baseColor = rgbToHsv(inputColor);
     
     // Modify baseColor to make it less saturated/more saturated
@@ -492,7 +590,7 @@ function App() {
     return rgbPalette;
   }
    
-  const complementAlt = (customColor) => {
+  const complementAlt2 = (customColor) => {
     const baseColor = rgbToHsv(customColor);
     // const baseColor = modifyColor({
     //   hsvColor: hsvCustom,
@@ -537,9 +635,9 @@ function App() {
     return rgbPalette;
   }
 
-  const analogic = (rgbColor) => {
+  const analogicAlt = (rgbColor) => {
     const baseColor = rgbToHsv(rgbColor);
-    const hueModifier = getRandomValue(15, 30);
+    const hueModifier = getRandomValue(20, 40);
 
     const leftColor = createColor({hsvColor: baseColor, newHue: baseColor[0] - hueModifier});
 
@@ -555,8 +653,8 @@ function App() {
 
     const leftColor2 = createColor({
       hsvColor: leftColor, 
-      newSaturation: leftColor[1] +  (leftDirection * getRandomValue(10, 20) / 100),
-      newValue: leftColor[2] - (leftDirection * getRandomValue(10, 20) / 100),
+      newSaturation: leftColor[1] +  (leftDirection * getRandomValue(20, 30) / 100),
+      newValue: leftColor[2] - (leftDirection * getRandomValue(20, 30) / 100),
     });
 
     let rightDirection;
@@ -569,16 +667,64 @@ function App() {
 
     const rightColor2 = createColor({
       hsvColor: rightColor, 
-      newSaturation: rightColor[1] + (rightDirection * getRandomValue(10, 20) / 100),
-      newValue: rightColor[2] - (rightDirection * getRandomValue(10, 20) / 100),
+      newSaturation: rightColor[1] + (rightDirection * getRandomValue(20, 30) / 100),
+      newValue: rightColor[2] - (rightDirection * getRandomValue(20, 30) / 100),
     });
 
-    const hsvPalette = [leftColor2, leftColor, baseColor, rightColor, rightColor2];
+    // const hsvPalette = [leftColor2, leftColor, baseColor, rightColor, rightColor2];
+    const hsvPalette = [leftColor, baseColor, rightColor];
     const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
-    
     orderByLuminance(rgbPalette);
-    orderByColor(rgbPalette);
 
+    for (let r of rgbPalette) {
+      console.log(calculateLuminance(r));
+    }
+
+    // orderByColor(rgbPalette);
+
+    return rgbPalette;
+  }
+
+  const analogic = (rgbColor) => {
+    let baseColor = rgbToHsv(rgbColor);
+    let leftColor = createColor({hsvColor: baseColor, newHue: baseColor[0] - getRandomValue(30, 45)});
+    let rightColor = createColor({hsvColor: baseColor, newHue: baseColor[0] + getRandomValue(30, 45)});
+
+    baseColor = chroma.hsv(baseColor);
+    leftColor = chroma.hsv(leftColor);
+    rightColor = chroma.hsv(rightColor);
+
+    let rgbPalette = [leftColor, baseColor, rightColor];
+    rgbPalette.sort((a, b) => (a.luminance() - b.luminance()));
+    
+    let lum1, lum2, ratio;
+
+    lum1 = rgbPalette[0].luminance();
+    ratio = getRandomValue(25, 45) / 10;
+    lum2 = ((lum1 + 0.05) / ratio + 0.05);
+    if (lum2 < 0) {
+      lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    }
+
+    rgbPalette.push(rgbPalette[0].luminance(lum2));
+
+    lum1 = rgbPalette[1].luminance();
+    ratio = getRandomValue(25, 45) / 10;
+    lum2 = ((lum1 + 0.05) / ratio + 0.05);
+    if (lum2 < 0) {
+      lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    }
+
+    rgbPalette.push(rgbPalette[1].luminance(lum2));
+
+    // rgbPalette.sort((a, b) => (a.luminance() - b.luminance()));
+
+    for (let r of rgbPalette) {
+      console.log(chroma.contrast(r, 'black'), chroma.contrast(r, 'white'));
+    }
+
+    rgbPalette = rgbPalette.map((chromaColor) => { return chromaColor.rgb(); });
+    
     return rgbPalette;
   }
 
@@ -692,6 +838,86 @@ function App() {
     return [h, s, l];
   }
 
+  const hsvToRgb = (hsvColor) => {
+    const [h, s, v] = hsvColor;
+
+    const c = v * s;
+
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+
+    const m = v - c;
+
+    let tempR = 0, tempG = 0, tempB = 0;
+    if (h < 60) {
+      tempR = c;
+      tempG = x;
+    }
+    else if (h < 120) {
+      tempR = x;
+      tempG = c;
+    }
+    else if (h < 180) {
+      tempG = c;
+      tempB = x;
+    }
+    else if (h < 240) {
+      tempG = x;
+      tempB = c;
+    }
+    else if (h < 300) {
+      tempR = x;
+      tempB = c;
+    }
+    else if (h < 360) {
+      tempR = c;
+      tempB = x;
+    }
+
+    const r = Math.round((tempR + m) * 255);
+    const g = Math.round((tempG + m) * 255);
+    const b = Math.round((tempB + m) * 255);
+
+    return [r, g, b];
+  }
+
+  const rgbToHsv = (rgbColor) => {
+    const [r, g, b] = rgbColor;
+
+    const tempR = r / 255;
+    const tempG = g / 255;
+    const tempB = b / 255;
+
+    const cMax = Math.max(tempR, tempG, tempB);
+    const cMin = Math.min(tempR, tempG, tempB);
+
+    const delta = cMax - cMin;
+
+    let h = 0, s = 0, v = cMax;
+    if (cMax !== 0) {
+      s = delta / cMax
+    }
+
+    if (cMax === tempR) {
+      h = 60 * (((tempG - tempB) / delta) % 6);
+    }
+    else if (cMax === tempG) {
+        h = 60 * (((tempB - tempR) / delta) + 2);
+    }
+    else if (cMax === tempB) {
+        h = 60 * (((tempR - tempG) / delta) + 4);
+    }
+
+    if (h < 0) {
+      h = 360 + h;
+    }
+
+    h = Math.round(h % 360);
+    s = (Math.round(s * 10000)) / 10000;
+    v = (Math.round(v * 10000)) / 10000;
+
+    return [h, s, v];
+  }
+
   const valueToHex = (value) => {
     const hexValue = value.toString(16);
     return hexValue.length === 1 ? `0${hexValue}` : hexValue;
@@ -721,10 +947,10 @@ function App() {
 
     let modes;
     if (hsvSeed[1] < .2 || hsvSeed[2] < .2) {
-      modes = ['monochrome', 'random'];
+      modes = ['monochrome'];
     }
     else {
-      modes = ['monochrome', 'analogic', 'complement'];
+      modes = ['monochrome', 'complement'];
     }
 
     return modes[getRandomValue(0, modes.length - 1)];
@@ -732,172 +958,23 @@ function App() {
 
   const [customizer, setCustom] = useState(getRandomRgb());
   const [colorPalette, setPalette] = useState(null);
-  
-  const newMonochrome = (rgbBase) => {
-    const hsvBase = rgbToHsv(rgbBase);
-    
-
-
-
-    const hsvPalette = [];
-    let darker = [...hsvBase];
-    let lighter = [...hsvBase];
-    let direction;
-
-    let minSat, maxSat;
-    let minVal, maxVal;
-    let modifier;
-    if (hsvBase[1] < 0.2 && hsvBase[2] < 0.2 ) {
-      // increase sat and value
-      console.log();
-    }
-    else if (hsvBase[1] < 0.2) {
-      // -2, 2, -5 5
-      minSat = -2;
-      maxSat = 2;
-
-      minVal = 5;
-      maxVal = 10;
-
-    }
-    else if (hsvBase[2] < 0.2) {
-      console.log();
-    }
-    else {
-      minSat = 10;
-      maxSat = 15;
-
-      minVal = 10;
-      maxVal = 12;
-
-    }
-
-    while (hsvPalette.length < 5) {
-      direction = getRandomValue(-1, 1);
-
-      if (direction === 1) {
-        darker[1] += getRandomValue(minSat, maxSat) / 100;
-        darker[2] -= getRandomValue(minVal, maxVal) / 100;
-
-        if (darker[1] > 1) {
-          darker[1] = darker[1] - 0.8;
-        }
-        else if (darker[1] < 0) {
-          darker[1] = 1  + darker[1];
-        }
-
-        if (darker[2] > 1) {
-          darker[2] = darker[2] - 0.8;
-        }
-        else if (darker[2] < 0) {
-          darker[2] = 1  + darker[2];
-        }
-
-        hsvPalette.push(darker);
-        darker = [...darker];
-      }
-      else {
-        lighter[1] -= getRandomValue(minSat, maxSat) / 100;
-        lighter[2] += getRandomValue(minVal, maxVal) / 100;
-
-        if (lighter[1] > 1) {
-          lighter[1] = lighter[1] - 0.8;
-        }
-        else if (lighter[1] < 0) {
-          lighter[1] = 1  + lighter[1];
-        }
-
-        if (lighter[2] > 1) {
-          lighter[2] = lighter[2] - 0.8;
-        }
-        else if (lighter[2] < 0) {
-          lighter[2] = 1 + lighter[2];
-        }
-
-        hsvPalette.push(lighter);
-        lighter = [...lighter];
-      }
-
-    }
-
-    // while (hsvPalette.length < 5) {
-    //   direction = getRandomValue(-1, 1);
-
-    //   if (direction === 1) {
-    //     darker[1] += getRandomValue(10, 15) / 100; // modifier
-    //     darker[2] -= getRandomValue(10, 12) / 100;
-
-    //     if (darker[1] > 1) {
-    //       darker[1] = darker[1] - 0.8;
-    //     }
-    //     else if (darker[1] < 0) {
-    //       darker[1] = 1  + darker[1];
-    //     }
-
-    //     if (darker[2] > 1) {
-    //       darker[2] = darker[2] - 0.8;
-    //     }
-    //     else if (darker[2] < 0) {
-    //       darker[2] = 1  + darker[2];
-    //     }
-
-    //     hsvPalette.push(darker);
-    //     darker = [...darker];
-    //   }
-    //   else {
-    //     lighter[1] -= getRandomValue(10, 15) / 100;
-    //     lighter[2] += getRandomValue(10, 12) / 100;
-
-    //     if (lighter[1] > 1) {
-    //       lighter[1] = lighter[1] - 0.8;
-    //     }
-    //     else if (lighter[1] < 0) {
-    //       lighter[1] = 1  + lighter[1];
-    //     }
-
-    //     if (lighter[2] > 1) {
-    //       lighter[2] = lighter[2] - 0.8;
-    //     }
-    //     else if (lighter[2] < 0) {
-    //       lighter[2] = 1 + lighter[2];
-    //     }
-
-    //     hsvPalette.push(lighter);
-    //     lighter = [...lighter];
-    //   }
-
-    // }
-
-    const rgbPalette = hsvPalette.map((hsvColor) => { return hsvToRgb(hsvColor); });
-    orderByLuminance(rgbPalette);
-    return rgbPalette;
-  }
     
   const fetchPalette = async (custom) => {
-    // // fOR DEBUGGING
+    // // For debugging each palette mode
     // let rawPalette;
     // rawPalette = complement(custom);
-    const paletteMode = randomizeMode(custom);
 
+    const paletteMode = randomizeMode(custom);
     let rawPalette;
-    if (paletteMode === 'random') {
-      var data = {
-        model : "default",
-        input : [custom, "N", "N", "N", "N"],
-      }
-      
-      rawPalette = await axios.post('http://colormind.io/api/', JSON.stringify(data));
-      rawPalette = rawPalette.data.result;
-    }
-    else if (paletteMode === 'monochrome') {
-      rawPalette = monochrome(custom);
-    }
-    else if (paletteMode === 'analogic') {
-      rawPalette = analogic(custom);
+    if (paletteMode === 'monochrome') {
+      rawPalette = await monochrome(custom);
     }
     else if (paletteMode === 'complement') {
-      rawPalette = complement(custom);
+      rawPalette = await complement(custom);
     }
+    // else if (paletteMode === 'analogic') {
+    //   rawPalette = analogic(custom);
+    // }
 
     setPalette(rawPalette);
   }
@@ -913,33 +990,23 @@ function App() {
       return "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({}));
     }
 
-    const data = {
-        'swatch-1': {
-          'rgb': palette[0],
-          'hex': rgbToHex(palette[0]),
-          'hsl': rgbToHsl(palette[0])
-        },
-        'swatch-2': {
-          'rgb': palette[1],
-          'hex': rgbToHex(palette[1]),
-          'hsl': rgbToHsl(palette[1])
-        },
-        'swatch-3': {
-          'rgb': palette[2],
-          'hex': rgbToHex(palette[2]),
-          'hsl': rgbToHsl(palette[2])
-        },
-        'swatch-4': {
-          'rgb': palette[3],
-          'hex': rgbToHex(palette[3]),
-          'hsl': rgbToHsl(palette[3])
-        },
-        'swatch-5': {
-          'rgb': palette[4],
-          'hex': rgbToHex(palette[4]),
-          'hsl': rgbToHsl(palette[4])
-        },
-    };
+    const data = {};
+
+    let pRgb, pHex, pHsl;
+    for (let p in palette) {
+      pRgb = palette[p];
+      pHex = rgbToHex(pRgb);
+      pHsl = rgbToHsl(pRgb);
+
+      pRgb = `rgb(${pRgb[0]}, ${pRgb[1]}, ${pRgb[2]})`;
+      pHsl = `hsl(${pHsl[0]}, ${Math.round(pHsl[1] * 100)}%, ${Math.round(pHsl[2] * 100)}%)`;
+      
+      data[`swatch-${p + 1}`] = {
+        'hex': pHex,
+        'rgb': pRgb,
+        'hsl': pHsl
+      }
+    }
 
     const download = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
 
@@ -1053,7 +1120,6 @@ function App() {
       difference = calculateContrast(base, rgbValues[i]);
 
       if (difference < 0.9) {
-        // console.log(difference);
         tempValues.push(rgbValues[i]);
         base = rgbValues[i];
       }
@@ -1066,13 +1132,11 @@ function App() {
     }
 
     if (finalValues.length < 5) {
-      console.log(finalValues);
       fillMissing(finalValues);
     }
     else if (finalValues.length > 5) {
       finalValues = finalValues.slice(0, 5);
     }
-
 
     return finalValues;
   }
@@ -1170,26 +1234,13 @@ useEffect(() => {
   (async () => {
     const custom = getRandomRgb();
 
-    var data = {
-      model : "default",
-      input : [custom, "N", "N", "N", "N"],
-    }
-
     const paletteMode = randomizeMode(custom);
-    const res = await axios.post('http://colormind.io/api/', JSON.stringify(data));
-
     let rawPalette;
-    if (paletteMode === 'random') {
-      rawPalette = res.data.result;
-    }
-    else if (paletteMode === 'monochrome') {
-      rawPalette = monochrome(res.data.result[0]);
-    }
-    else if (paletteMode === 'analogic') {
-      rawPalette = analogic(res.data.result[0]);
+    if (paletteMode === 'monochrome') {
+      rawPalette = await monochrome(custom);
     }
     else if (paletteMode === 'complement') {
-      rawPalette = complement(res.data.result[0]);
+      rawPalette = await complement(custom);
     }
 
     setPalette(rawPalette);
@@ -1204,9 +1255,6 @@ useEffect(() => {
         setCustom(hexToRgb(e.target.value));
       }}></input>
 
-      {/* <input type="color" value={customizer}></input> */}
-
-
       <br />
 
       <button onClick={() => fetchPalette(getRandomRgb())}> Generate random palette </button>
@@ -1220,8 +1268,8 @@ useEffect(() => {
       {colorPalette ? colorPalette.map((rawColor, index) => {return (<Swatch rgbColor={rawColor} onChange={(e) => {changePalette(index, hexToRgb(e.target.value));}} />)}) : null }
 
       <br />
-{/* 
-      <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a> */}
+
+      <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a>
 
     </div>
   );
