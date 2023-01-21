@@ -1,15 +1,64 @@
 import logo from './logo.svg';
 import { useEffect, useState } from 'react';
 import { Swatch } from './components/Swatch';
-import chroma from "chroma-js";
+import Blob1 from './components/Blob1';
+import Blob2 from './components/Blob2';
+import Blob3 from './components/Blob3';
+import Blob4 from './components/Blob4';
+import Blob5 from './components/Blob5';
+import Circle from './components/Circle';
+import chroma from 'chroma-js';
+
+
+import axios from 'axios';
 import './App.css';
 
 function App() {
+
+  const[color, setColor] = useState("blue")
+  const click = color=>{
+    setColor(color)
+  }
+
+  /*animation for swatches*/
+  const observer2 = new IntersectionObserver((entries) => {
+    entries.forEach((entry)=> {
+      console.log(entry)
+      if(entry.isIntersecting)
+      {
+        entry.target.classList.add('delay');
+      }
+      else 
+     {
+        entry.target.classList.remove('delay');
+      }
+    })
+  })
+
+  const delayEle = document.querySelectorAll('.norm');
+  delayEle.forEach((el)=>observer2.observe(el));
+
+  /*animation for section1*/
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry)=> {
+      console.log(entry)
+      if(entry.isIntersecting)
+      {
+        entry.target.classList.add('show');
+      }
+      else 
+     {
+        entry.target.classList.remove('show');
+      }
+    })
+  })
+  const hiddenElements = document.querySelectorAll('.hidden');
+  hiddenElements.forEach((el)=>observer.observe(el));
+
   const BLACK = chroma('black');
   const WHITE = chroma('white');
   const BLWT = [BLACK, WHITE];
   const BW = [BLACK.luminance(), WHITE.luminance()];
-
 
   const getRandomValue = (min, max) => {
     let randomVal = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -636,8 +685,6 @@ function App() {
 
   //   return Promise.resolve(rgbPalette);
   // }
- 
-
 
   const analogicAlt = (rgbColor) => {
     const baseColor = rgbToHsv(rgbColor);
@@ -908,7 +955,7 @@ function App() {
 
     let modes;
     if (hsvSeed[1] < .2 || hsvSeed[2] < .2) {
-      modes = ['monochrome'];
+      modes = ['monochrome', 'complement'];
     }
     else {
       modes = ['monochrome', 'complement'];
@@ -919,24 +966,24 @@ function App() {
 
   const [customizer, setCustom] = useState(getRandomRgb());
   const [colorPalette, setPalette] = useState(null);
-    
+  
   const fetchPalette = async (custom) => {
-    // For debugging each palette mode
-    let rawPalette;
-    rawPalette = await analogic(custom);
-    // rawPalette = rawPalette.concat(await complementAlt2(custom));
-
-    // const paletteMode = randomizeMode(custom);
+    // // For debugging each palette mode
     // let rawPalette;
-    // if (paletteMode === 'monochrome') {
-    //   rawPalette = await monochrome(custom);
-    // }
-    // else if (paletteMode === 'complement') {
-    //   rawPalette = await complement(custom);
-    // }
-    // else if (paletteMode === 'analogic') {
-    //   rawPalette = analogic(custom);
-    // }
+    // rawPalette = await analogic(custom);
+    // // rawPalette = rawPalette.concat(await complementAlt2(custom));
+
+    const paletteMode = randomizeMode(custom);
+    let rawPalette;
+    if (paletteMode === 'monochrome') {
+      rawPalette = await monochrome(custom);
+    }
+    else if (paletteMode === 'complement') {
+      rawPalette = await complement(custom);
+    }
+    else if (paletteMode === 'analogic') {
+      rawPalette = analogic(custom);
+    }
 
     setPalette(rawPalette);
   }
@@ -1210,30 +1257,145 @@ useEffect(() => {
   })();
   }, []);
 
+  const sampleWebsite = () => {
+    let rawPalette = [...colorPalette];
+    orderByLuminance(rawPalette);
+
+    let rgbPalette = rawPalette.map((rgb) => {
+      const [r, g, b] = rgb;
+      return `rgb(${r},${g},${b})`;
+    })
+
+    let namedPalette = {
+
+    };
+
+    console.log(namedPalette['0'] === undefined);
+
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 5; j++) {
+        if (1 / calculateContrast(rawPalette[i], rawPalette[j]) >= 4.5) {
+          if (namedPalette[rgbPalette[i]] === undefined) {
+            namedPalette[rgbPalette[i]] = []
+          }
+
+          namedPalette[rgbPalette[i]].push(rgbPalette[j]);
+        }
+      }
+    }
+
+    let namedSwatches = Object.keys(namedPalette);
+    let bg1, bg2, swatch1, swatch2, fg1, fg2, t;
+
+    console.log(namedSwatches);
+
+    bg1 = namedSwatches.splice(getRandomValue(0, namedSwatches.length - 1), 1)[0];
+
+    console.log(namedSwatches);
+
+    bg2 = namedSwatches.splice(getRandomValue(0, namedSwatches.length - 1), 1)[0];
+
+    if (namedPalette[bg2].length > namedPalette[bg1].length) {
+      t = bg1;
+      bg1 = bg2;
+      bg2 = t;
+    }
+
+    swatch1 = namedPalette[bg1];
+    swatch2 = namedPalette[bg2];
+
+    fg1 = []
+    if (swatch1.length > 1) {
+      t = getRandomValue(0, swatch1.length - 2)
+      fg1 = swatch1.slice(t, t + 2);
+    }
+    else {
+      fg1 = [swatch1[0], swatch1[0]];
+    }
+
+    fg2 = swatch2[getRandomValue(0, swatch2.length - 1)];
+
+    console.log(bg1, fg1, bg2, fg2);
+    return (
+      <div id="sampleSite" className = "hidden" 
+      style={{  backgroundColor: bg1}}>
+    <h1 style={{color: fg1[0]}}>Sample Website</h1>
+    <h2 style={{color: fg1[1] }}>Lorem ipsum dolor sit amet,</h2>
+    <p style={{color: fg1[1] }}>consectetur adipiscing elit. Fusce ornare dui ipsum, ut consequat libero mattis sit amet. Nam vel sodales diam, nec gravida elit. Sed nibh sapien, pharetra et dapibus ac, auctor eu ipsum.</p>
+    <button id = "sampleButton" style = {{backgroundColor: bg2, color: fg2, border: fg2}}>Click me!</button>
+  </div>
+    );
+  }
+
   return (
     <div className="App">
+      <section className = "hidden" id="top" >
+        <div className = "elementsContainer">
 
-      <input type="color" onChange={(e) => {
-        setCustom(hexToRgb(e.target.value));
-      }}></input>
+        <Blob1 className="bg"/>
+        <Blob2 className="bg"/>
+        <Blob3 className="bg"/>
+        <Blob4 className="bg"/>
+        <Blob5 className="bg"/>
+        <Circle className="bg"/>
 
-      <br />
+          <p className = "behind"> WHITELIGHT </p>
+          <p className = "front"> WHITELIGHT </p>
 
-      <button onClick={() => fetchPalette(getRandomRgb())}> Generate random palette </button>
-      <button onClick={() => fetchPalette(customizer)}> Generate palette from color picker </button>
+          <div id = "optionCP"> 
+            <button className="option-text" id = "pick-text" onClick={() => fetchPalette(customizer)}> <a href="#bot"> colorpick </a></button>
+            <input className = "colorPick" type="color" onChange={(e) => { setCustom(hexToRgb(e.target.value));}} />
+          </div>
 
-      <input type="file" id="imgfile" onChange={(e) => { extractColors(e.target.files[0]); }} />
+          <div id = "optionU">
+            <button className="option-text" id = "upld-text"> <a href="#bot"> upload </a> </button>
+            <input type="file" id="imgfile" onChange={(e) => { extractColors(e.target.files[0]); }} />
+          </div>
 
+          <div id="labelBorder">
+            <label for="imgfile" className = "upldBtn" >
+              <i className="fa-solid fa-upload fa-3x"></i>
+            </label>
+          </div>
+        
+          <div id = "optionRan">
+            <div id = "ranIcon">
+              <a href="#bot" onClick={() => fetchPalette(getRandomRgb())}>
+              <i class="fa-solid fa-question fa-3x"></i>
+              </a>
+            </div>
+          
+            <button className = "option-text" id = "random-text" onClick={() => fetchPalette(getRandomRgb())}> <a href="#bot"> random </a></button>
+          </div>
 
-      <br />
+        </div>
+      </section>
 
-      {colorPalette ? colorPalette.map((rawColor, index) => {return (<Swatch rgbColor={rawColor} onChange={(e) => {changePalette(index, hexToRgb(e.target.value));}} />)}) : null }
+      
+      <section className = "hidden" id="bot">
+        <br />
 
-      <br />
+        <div className="palette" >
+          {colorPalette ? colorPalette.map((rawColor, index) => {return (<Swatch rgbColor={rawColor} onChange={(e) => {changePalette(index, hexToRgb(e.target.value));}} />)}) : null }
+          <br />
+        </div>
+        
+        <a href = "#top"> <i class="fa-solid fa-angles-up fa-3x"></i> </a>
+        
+        {colorPalette ? sampleWebsite() : null}
+        {/* <div id="sampleSite" className = "hidden" 
+            style={{  backgroundColor: colorPalette[0]}}>
+          <h1 style={{color: "red"}}>Sample Website</h1>
+          <h2 style={{color: "blue" }}>Lorem ipsum dolor sit amet,</h2>
+          <p style={{color: "black" }}>consectetur adipiscing elit. Fusce ornare dui ipsum, ut consequat libero mattis sit amet. Nam vel sodales diam, nec gravida elit. Sed nibh sapien, pharetra et dapibus ac, auctor eu ipsum.</p>
+          <button id = "sampleButton" style = {{backgroundColor: 'green'}}>Click me!</button>
+        </div> */}
+        
+        {/* 
+        <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a> */}
 
-      <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a>
-
-    </div>
+      </section>
+  </div>
   );
 }
 
