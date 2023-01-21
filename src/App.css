@@ -31,8 +31,12 @@ body
   height: 1024px;
   width: 1500px;
 }
-
-
+#sampleButton {
+  text-align: center;
+}
+#sampleButton>a {
+  font-family: 'Lexend Exa', sans-serif;
+}
 
 #top 
 {

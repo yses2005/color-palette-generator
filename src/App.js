@@ -86,7 +86,6 @@ function App() {
     return [h, s, v];
   }
 
-
   const calculateSaturation = (rgbColor) => {
     const [r, g, b] = rgbColor;
 
@@ -334,7 +333,6 @@ function App() {
     return Promise.resolve(rgbPalette);
   }
 
-  
   const analogic = (inputColor) => {
     const lum1 = calculateLuminance([127, 127, 127]);
     const inputHsv = rgbToHsv(inputColor);
@@ -966,6 +964,7 @@ function App() {
 
   const [customizer, setCustom] = useState(getRandomRgb());
   const [colorPalette, setPalette] = useState(null);
+  const [inputImg, setImg] = useState(null);
   
   const fetchPalette = async (custom) => {
     // // For debugging each palette mode
@@ -981,9 +980,9 @@ function App() {
     else if (paletteMode === 'complement') {
       rawPalette = await complement(custom);
     }
-    else if (paletteMode === 'analogic') {
-      rawPalette = analogic(custom);
-    }
+    // else if (paletteMode === 'analogic') {
+    //   rawPalette = analogic(custom);
+    // }
 
     setPalette(rawPalette);
   }
@@ -1320,9 +1319,9 @@ useEffect(() => {
       <div id="sampleSite" className = "hidden" 
       style={{  backgroundColor: bg1}}>
     <h1 style={{color: fg1[0]}}>Sample Website</h1>
-    <h2 style={{color: fg1[1] }}>Lorem ipsum dolor sit amet,</h2>
-    <p style={{color: fg1[1] }}>consectetur adipiscing elit. Fusce ornare dui ipsum, ut consequat libero mattis sit amet. Nam vel sodales diam, nec gravida elit. Sed nibh sapien, pharetra et dapibus ac, auctor eu ipsum.</p>
-    <button id = "sampleButton" style = {{backgroundColor: bg2, color: fg2, border: fg2}}>Click me!</button>
+    <h2 style={{color: fg1[1] }}>If you wish to download the palette,</h2>
+    <p style={{color: fg1[1] }}>you can click the button below to generate a json file.</p>
+    <button id = "sampleButton" style = {{backgroundColor: bg2, color: fg2, border: fg2}}><a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download here!</a></button>
   </div>
     );
   }
@@ -1348,8 +1347,8 @@ useEffect(() => {
           </div>
 
           <div id = "optionU">
-            <button className="option-text" id = "upld-text"> <a href="#bot"> upload </a> </button>
-            <input type="file" id="imgfile" onChange={(e) => { extractColors(e.target.files[0]); }} />
+            <button className="option-text" id = "upld-text" onClick={() => { extractColors(inputImg); }}> <a href="#bot"> upload </a> </button>
+            <input type="file" id="imgfile" onChange={(e) => { setImg(e.target.files[0]); }} />
           </div>
 
           <div id="labelBorder">
