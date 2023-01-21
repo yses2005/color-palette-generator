@@ -1269,8 +1269,6 @@ useEffect(() => {
 
     };
 
-    console.log(namedPalette['0'] === undefined);
-
     for (let i = 0; i < 5; i++) {
       for (let j = 0; j < 5; j++) {
         if (1 / calculateContrast(rawPalette[i], rawPalette[j]) >= 4.5) {
@@ -1284,13 +1282,13 @@ useEffect(() => {
     }
 
     let namedSwatches = Object.keys(namedPalette);
+    if (namedSwatches.length === 0) {
+      return;
+    }
+
     let bg1, bg2, swatch1, swatch2, fg1, fg2, t;
 
-    console.log(namedSwatches);
-
     bg1 = namedSwatches.splice(getRandomValue(0, namedSwatches.length - 1), 1)[0];
-
-    console.log(namedSwatches);
 
     bg2 = namedSwatches.splice(getRandomValue(0, namedSwatches.length - 1), 1)[0];
 
@@ -1314,14 +1312,13 @@ useEffect(() => {
 
     fg2 = swatch2[getRandomValue(0, swatch2.length - 1)];
 
-    console.log(bg1, fg1, bg2, fg2);
     return (
       <div id="sampleSite" className = "hidden" 
       style={{  backgroundColor: bg1}}>
     <h1 style={{color: fg1[0]}}>Sample Website</h1>
-    <h2 style={{color: fg1[1] }}>If you wish to download the palette,</h2>
-    <p style={{color: fg1[1] }}>you can click the button below to generate a json file.</p>
-    <button id = "sampleButton" style = {{backgroundColor: bg2, color: fg2, border: fg2}}><a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download here!</a></button>
+    <h2 style={{color: fg1[1] }}>Lorem ipsum dolor sit amet,</h2>
+    <p style={{color: fg1[1] }}>consectetur adipiscing elit. Fusce ornare dui ipsum, ut consequat libero mattis sit amet. Nam vel sodales diam, nec gravida elit. Sed nibh sapien, pharetra et dapibus ac, auctor eu ipsum.</p>
+    <button id = "sampleButton" style = {{backgroundColor: bg2, color: fg2, border: fg2}}>Click me!</button>
   </div>
     );
   }
@@ -1380,7 +1377,7 @@ useEffect(() => {
         </div>
         
         <a href = "#top"> <i class="fa-solid fa-angles-up fa-3x"></i> </a>
-        
+        <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download here!</a>
         {colorPalette ? sampleWebsite() : null}
         {/* <div id="sampleSite" className = "hidden" 
             style={{  backgroundColor: colorPalette[0]}}>
