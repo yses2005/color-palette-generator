@@ -1172,7 +1172,7 @@ function App() {
     });
   }
 
-  const orderByColor = (rgbValues) => {
+  const orderByHue = (rgbValues) => {
     // Order the colors by relative luminance, lightest to darkest
     rgbValues.sort((a, b) => { 
       const hueA = rgbToHsv(a)[0];
