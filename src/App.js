@@ -1,4 +1,4 @@
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import { useEffect, useState } from 'react';
 import { Swatch } from './components/Swatch';
 import Blob1 from './components/Blob1';
@@ -10,6 +10,7 @@ import Circle from './components/Circle';
 import chroma from 'chroma-js';
 
 
+import $ from 'jquery';
 import axios from 'axios';
 import './App.css';
 
@@ -348,341 +349,6 @@ function App() {
 
     return Promise.resolve([inputColor, outputColor]);
   }
-
-  // const monochrome = (inputColor) => {
-  //   // Complies to W3C color contrast requirements
-    
-  //   const baseHsv = rgbToHsv(inputColor);
-  //   const baseLum = calculateLuminance(inputColor);
-
-  //   let compHsv = [...baseHsv];
-  //   while (calculateContrast(baseLum, calculateLuminance(hsvToRgb(compHsv))) > 0.2857) { // 1:4
-  //     modifyColor({
-  //       hsvColor: compHsv,
-  //       newSaturation: compHsv[1] + (getRandomValue(5, 10) / 100),
-  //       newValue: compHsv[2] - (getRandomValue(5, 10) / 100), 
-  //     });
-  //   } 
-
-  //   const compRgb = hsvToRgb(compHsv);
-  //   const rgbPalette = [];
-
-  //   const canvas = document.createElement("canvas");
-  //   canvas.width = 200;
-  //   canvas.height = 1;
-  //   const ctx = canvas.getContext("2d", { willReadFrequently : true });
-
-  //   const grd = ctx.createLinearGradient(0,0,200,0);
-  //   grd.addColorStop(0,`rgb(${inputColor[0]}, ${inputColor[1]}, ${inputColor[2]})`);
-  //   grd.addColorStop(1,`rgb(${compRgb[0]}, ${compRgb[1]}, ${compRgb[2]})`);
-
-  //   ctx.fillStyle = grd;
-  //   ctx.fillRect(0,0,200,1);
-
-  //   let swatch;
-  //   for (let i = 0; i < 5; i++) {
-  //     swatch = ctx.getImageData(i * getRandomValue(40, 45), 0, 1, 1).data;
-  //     rgbPalette.push([swatch[0], swatch[1], swatch[2]])
-  //   }
-
-  //   for (let r in rgbPalette) {
-  //     console.log(1 / calculateContrast(rgbPalette[0], rgbPalette[r]));
-  //   }
-
-  //   return Promise.resolve(rgbPalette);
-  // }
-
-  
-  // const monochromeAlt = (inputColor) => {
-  //   // Complies to W3C color contrast requirements
-    
-  //   const baseHsv = rgbToHsv(inputColor);
-  //   const baseLum = calculateLuminance(inputColor);
-
-  //   let compHsv = [...baseHsv];
-  //   while (calculateContrast(baseLum, calculateLuminance(hsvToRgb(compHsv))) > 0.2857) { // 1:4
-  //     modifyColor({
-  //       hsvColor: compHsv,
-  //       newSaturation: compHsv[1] + (getRandomValue(5, 10) / 100),
-  //       newValue: compHsv[2] - (getRandomValue(5, 10) / 100), 
-  //     });
-  //   } 
-
-  //   const compRgb = hsvToRgb(compHsv);
-  //   const rgbPalette = [];
-
-  //   const canvas = document.createElement("canvas");
-  //   canvas.width = 200;
-  //   canvas.height = 1;
-  //   const ctx = canvas.getContext("2d", { willReadFrequently : true });
-
-  //   const grd = ctx.createLinearGradient(0,0,200,0);
-  //   grd.addColorStop(0,`rgb(${inputColor[0]}, ${inputColor[1]}, ${inputColor[2]})`);
-  //   grd.addColorStop(1,`rgb(${compRgb[0]}, ${compRgb[1]}, ${compRgb[2]})`);
-
-  //   ctx.fillStyle = grd;
-  //   ctx.fillRect(0,0,200,1);
-
-  //   let swatch;
-  //   for (let i = 0; i < 5; i++) {
-  //     swatch = ctx.getImageData(i * getRandomValue(40, 45), 0, 1, 1).data;
-  //     rgbPalette.push([swatch[0], swatch[1], swatch[2]])
-  //   }
-
-  //   // let r;
-  //   // for (let temp of rgbPalette) {
-  //   //   r = chroma(temp);
-  //   //   console.log(chroma.contrast(r, 'black'), chroma.contrast(r, 'white'));
-  //   //   // r = chroma(temp);
-  //   //   // console.log(chroma.contrast(r, 'black'), chroma.contrast('white'));
-  //   // }
-
-  //   return Promise.resolve(rgbPalette);
-  // }
-
-  // const monochromeAlt1 = (customColor) => {
-  //   const baseColor = rgbToHsv(customColor);
-
-  //   let hsvPalette = [];
-  //   if (baseColor[2] <= 0.20) {
-  //     const color1 = [...baseColor];
-  //     const color2 = [...baseColor];
-  //     const color3 = [...baseColor];
-  //     const color4 = [...baseColor];
-
-  //     color1[2] = getRandomValue(25, 40) / 100;
-  //     color2[2] = getRandomValue(45, 60) / 100;
-  //     color3[2] = getRandomValue(65, 80) / 100;
-  //     color4[2] = getRandomValue(85, 100) / 100;
-
-  //     color1[1] += getRandomValue(-5, 5) / 100;
-  //     color2[1] += getRandomValue(-5, 5) / 100;
-  //     color3[1] += getRandomValue(-5, 5) / 100;
-  //     color4[1] += getRandomValue(-5, 5) / 100;
-
-  //     hsvPalette = [baseColor, color1, color2, color3, color4];
-  //   }
-  //   else if (baseColor[2] <= 0.40) {
-  //     const color1 = [...baseColor];
-  //     const color2 = [...baseColor];
-  //     const color3 = [...baseColor];
-  //     const color4 = [...baseColor];
-
-  //     color1[2] = getRandomValue(18, 23) / 100;
-  //     color2[2] = getRandomValue(45, 60) / 100;
-  //     color3[2] = getRandomValue(65, 80) / 100;
-  //     color4[2] = getRandomValue(85, 100) / 100;
-
-  //     color1[1] += getRandomValue(-5, 5) / 100;
-  //     color2[1] += getRandomValue(-5, 5) / 100;
-  //     color3[1] += getRandomValue(-5, 5) / 100;
-  //     color4[1] += getRandomValue(-5, 5) / 100;
-
-
-  //     hsvPalette = [color1, baseColor, color2, color3, color4];
-  //   }
-  //   else if (baseColor[2] <= 0.60) {
-  //     const color1 = [...baseColor];
-  //     const color2 = [...baseColor];
-  //     const color3 = [...baseColor];
-  //     const color4 = [...baseColor];
-
-  //     color1[2] = getRandomValue(18, 23) / 100;
-  //     color2[2] = getRandomValue(25, 40) / 100;
-  //     color3[2] = getRandomValue(65, 80) / 100;
-  //     color4[2] = getRandomValue(85, 100) / 100;
-
-  //     color1[1] += getRandomValue(-5, 5) / 100;
-  //     color2[1] += getRandomValue(-5, 5) / 100;
-  //     color3[1] += getRandomValue(-5, 5) / 100;
-  //     color4[1] += getRandomValue(-5, 5) / 100;
-
-
-  //     hsvPalette = [color1, color2, baseColor, color3, color4];
-  //   }
-  //   else if (baseColor[2] <= 0.80) {
-  //     const color1 = [...baseColor];
-  //     const color2 = [...baseColor];
-  //     const color3 = [...baseColor];
-  //     const color4 = [...baseColor];
-
-  //     color1[2] = getRandomValue(18, 23) / 100;
-  //     color2[2] = getRandomValue(25, 40) / 100;
-  //     color3[2] = getRandomValue(45, 60) / 100;
-  //     color4[2] = getRandomValue(85, 100) / 100;
-
-  //     color1[1] += getRandomValue(-5, 5) / 100;
-  //     color2[1] += getRandomValue(-5, 5) / 100;
-  //     color3[1] += getRandomValue(-5, 5) / 100;
-  //     color4[1] += getRandomValue(-5, 5) / 100;
-
-  //     hsvPalette = [color1, color2, color3, baseColor, color4];
-  //   }
-  //   else if (baseColor[2] <= 1.00) {
-  //     const color1 = [...baseColor];
-  //     const color2 = [...baseColor];
-  //     const color3 = [...baseColor];
-  //     const color4 = [...baseColor];
-
-  //     color1[2] = getRandomValue(18, 23) / 100;
-  //     color2[2] = getRandomValue(25, 40) / 100;
-  //     color3[2] = getRandomValue(45, 60) / 100;
-  //     color4[2] = getRandomValue(65, 80) / 100;
-
-  //     color1[1] += getRandomValue(-5, 5) / 100;
-  //     color2[1] += getRandomValue(-5, 5) / 100;
-  //     color3[1] += getRandomValue(-5, 5) / 100;
-  //     color4[1] += getRandomValue(-5, 5) / 100;
-
-  //     hsvPalette = [color1, color2, color3, color4, baseColor];
-  //   } 
-    
-  //   const rgbPalette = hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
-  //   console.log(calculateContrast(rgbPalette[0], rgbPalette[4]));
-  //   return rgbPalette;
-  // }
-
-  // const monochromeAlt2 = (inputColor) => {
-  //   // s: 20 40 60 80 100
-  //   // v: 20 40 60 80 100
-  //   const baseHsv = rgbToHsv(inputColor);
-  //   const baseHsl = rgbToHsl(inputColor);
-  //   const baseLum = calculateLuminance(inputColor);
-
-  //   let hsvPalette = [baseHsv];
-  //   for (let i = 0; i < 3; i++) {
-  //     hsvPalette.push(createColor({
-  //       hsvColor: hsvPalette[i],
-  //       newSaturation: hsvPalette[i][1] + (getRandomValue(10, 15) / 100),
-  //       newValue: hsvPalette[i][2] - (getRandomValue(10, 15) / 100),
-  //     }))
-  //   }
-  //   var l2 = ( ( baseLum + 0.05 ) / 3.5 - 0.05 );
-  //   if (l2 < 0) {
-  //     l2 = ( 3.5 * ( baseLum + 0.05 ) - 0.05 );
-  //   }
-
-  //   hsvPalette.push(([baseHsl[0], baseHsl[1], l2]))
-
-    
-  //   const rgbPalette = hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
-  //   orderByLuminance(rgbPalette);
-  //   console.log(calculateContrast(rgbPalette[0], rgbPalette[4]));
-  //   return rgbPalette;
-  // }
-
-  // const complement = (inputColor) => {
-  //   let baseColor = chroma(inputColor);
-  //   let compColor = chroma(inputColor.map((channel) => { return (255 - channel); }));
-
-  //   let rgbPalette = [];
-  //   // let prevRatio = 2.5, currRatio, lum1, lum2;
-  //   // for (let i = 0; i < 3; i++) {
-  //   //   lum1 = BW[getRandomValue(0, 1)];
-  //   //   currRatio = getRandomValue((prevRatio + 2) * 10, (prevRatio + 4) * 10) / 10;
-
-  //   //   lum2 = ((lum1 + 0.05) / currRatio + 0.05);
-  //   //   if (lum2 < 0) {
-  //   //     lum2 = (currRatio * ( lum1 + 0.05 ) - 0.05);
-  //   //   }
-
-  //   //   console.log(ratio);
-
-  //   //   rgbPalette.push(baseColor.luminance(lum2).rgb());
-  //   //   prevRatio = currRatio;
-  //   // }
-
-  //   orderByLuminance(rgbPalette);
-  //   let ratio, comparison, lum1, lum2;
-  //   let base1, base2, base3;
-  //   let darkComp, lightComp;
-  //   let mod1, mod2;
-  //   // mid base 
-  //   comparison = getRandomValue(0, 1);
-  //   lum1 = BW[comparison];
-  //   ratio = getRandomValue(25, 45) / 10
-
-  //   lum2 = ((lum1 + 0.05) / ratio + 0.05);
-  //   if (lum2 < 0) {
-  //     lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
-  //   }
-
-  //   base1 = baseColor.luminance(lum2);
-  //   rgbPalette.push(base1);
-    
-  //   lum1 = BW[0];
-  //   ratio = getRandomValue(100, 120) / 10;
-
-  //   lum2 = ((lum1 + 0.05) / ratio + 0.05);
-  //   if (lum2 < 0) {
-  //     lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
-  //   }
-
-  //   base2 = base1.darken();
-  //   rgbPalette.push(base2);
-
-  //   base3 = base1.brighten()
-  //   rgbPalette.push(base3);
-
-  
-
-
-  //   rgbPalette = rgbPalette.map((chromaColor) => { return chromaColor.rgb(); });
-
-  //   orderByLuminance(rgbPalette);
-
-  //   rgbPalette.push([255 - rgbPalette[2][0], 255 - rgbPalette[2][1], 255 - rgbPalette[2][2]])
-  //   const idx = getRandomValue(0, 1);
-  //   rgbPalette.push([255 - rgbPalette[idx][0], 255 - rgbPalette[idx][1], 255 - rgbPalette[idx][2]])
-
-
-  //   return Promise.resolve(rgbPalette);
-  // }
-
-  // const complementAlt3 = (customColor) => {
-  //   const baseColor = rgbToHsv(customColor);
-  //   // const baseColor = modifyColor({
-  //   //   hsvColor: hsvCustom,
-  //   //   newSaturation: hsvCustom[1] * (getRandomValue(70, 80) / 100),
-  //   //   newValue: hsvCustom[2] * (getRandomValue(80, 90) / 100)
-  //   // });
-
-  //   const complementColor = complementaryColor(baseColor);
-
-  //   const baseVariant1 = createColor({
-  //     hsvColor: baseColor,
-  //     newSaturation: baseColor[1] + (getRandomValue(10, 20) / 100),
-  //     newValue: baseColor[2] - (getRandomValue(10, 20) / 100),
-  //   });
-
-  //   const baseVariant2 = createColor({
-  //     hsvColor: baseColor,
-  //     newSaturation: baseColor[1] - (getRandomValue(10, 20) / 100),
-  //     newValue: baseColor[2] + (getRandomValue(10, 20) / 100),
-  //   });
-
-  //   const complementVariant1 = createColor({
-  //     hsvColor: complementColor,
-  //     newSaturation: complementColor[1] + (getRandomValue(10, 20) / 100),
-  //     newValue: complementColor[2] - (getRandomValue(10, 20) / 100),
-  //   });
-    
-  //   const complementVariant2 = createColor({
-  //     hsvColor: complementColor,
-  //     newSaturation: complementColor[1] - (getRandomValue(10, 20) / 100),
-  //     newValue: complementColor[2] + (getRandomValue(10, 20) / 100),
-  //   });
-
-
-  //   const hsvPalette = [baseColor, baseVariant1, baseVariant2, complementColor, complementVariant1, complementVariant2];
-  //   const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
-
-  //   orderByLuminance(rgbPalette);
-  //   rgbPalette.splice(2, 1);
-  //   orderByColor(rgbPalette);
-
-  //   return Promise.resolve(rgbPalette);
-  // }
 
   const analogicAlt = (rgbColor) => {
     const baseColor = rgbToHsv(rgbColor);
@@ -1172,7 +838,7 @@ function App() {
     });
   }
 
-  const orderByHue = (rgbValues) => {
+  const orderByColor = (rgbValues) => {
     // Order the colors by relative luminance, lightest to darkest
     rgbValues.sort((a, b) => { 
       const hueA = rgbToHsv(a)[0];
@@ -1318,7 +984,7 @@ useEffect(() => {
     <h1 style={{color: fg1[0]}}>Sample Website</h1>
     <h2 style={{color: fg1[1] }}>Lorem ipsum dolor sit amet,</h2>
     <p style={{color: fg1[1] }}>consectetur adipiscing elit. Fusce ornare dui ipsum, ut consequat libero mattis sit amet. Nam vel sodales diam, nec gravida elit. Sed nibh sapien, pharetra et dapibus ac, auctor eu ipsum.</p>
-    <button id = "sampleButton" style = {{backgroundColor: bg2, color: fg2, border: fg2}}>Click me!</button>
+    <button id="sampleButton" style={{backgroundColor: bg2, color: fg2, border: fg2}}>Click me!</button>
   </div>
     );
   }
@@ -1344,8 +1010,18 @@ useEffect(() => {
           </div>
 
           <div id = "optionU">
-            <button className="option-text" id = "upld-text" onClick={() => { extractColors(inputImg); }}> <a href="#bot"> upload </a> </button>
-            <input type="file" id="imgfile" onChange={(e) => { setImg(e.target.files[0]); }} />
+            <button className="option-text" id = "upld-text"
+            onClick={e => {if ($('#imgfile')[0].files.length === 0) {
+              alert("WARNING: You have not uploaded any image.");
+              }
+              else
+              {
+                $('#upld-anchor').attr('href',"#bot");
+                $('#upld-text').attr('href',"#bot");
+              }
+              
+            }}> <a id = "upld-anchor" href="#"> upload </a> </button>
+            <input type="file" id="imgfile" onChange={(e) => { extractColors(e.target.files[0]); }} />
           </div>
 
           <div id="labelBorder">
@@ -1376,19 +1052,13 @@ useEffect(() => {
           <br />
         </div>
         
-        <a href = "#top"> <i class="fa-solid fa-angles-up fa-3x"></i> </a>
-        <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download here!</a>
+        <a id = "goUp" href = "#top"> <i class="fa-solid fa-angles-up fa-3x"></i> </a>
+
+        <a id = "downloadBtn" href={`data:${exportPalette(colorPalette)}`} download="color.json" className='hidden copier'><i class="fa-regular fa-floppy-disk fa-3x"></i></a>
+
+
         {colorPalette ? sampleWebsite() : null}
-        {/* <div id="sampleSite" className = "hidden" 
-            style={{  backgroundColor: colorPalette[0]}}>
-          <h1 style={{color: "red"}}>Sample Website</h1>
-          <h2 style={{color: "blue" }}>Lorem ipsum dolor sit amet,</h2>
-          <p style={{color: "black" }}>consectetur adipiscing elit. Fusce ornare dui ipsum, ut consequat libero mattis sit amet. Nam vel sodales diam, nec gravida elit. Sed nibh sapien, pharetra et dapibus ac, auctor eu ipsum.</p>
-          <button id = "sampleButton" style = {{backgroundColor: 'green'}}>Click me!</button>
-        </div> */}
-        
-        {/* 
-        <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a> */}
+
 
       </section>
   </div>

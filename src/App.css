@@ -1,5 +1,5 @@
 /*font:  Lexend*/
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Exa:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 .App {
   text-align: center;
@@ -31,10 +31,12 @@ body
   height: 1024px;
   width: 1500px;
 }
+
 #sampleButton {
   text-align: center;
+  font-size: 5 px;
 }
-#sampleButton>a {
+#sampleButton a {
   font-family: 'Lexend Exa', sans-serif;
 }
 
@@ -293,32 +295,78 @@ section#bot
   border: white;
 }
 
-section#bot a 
+section#bot a#goUp
 {
   z-index: 4;
+  left: 3%;
 }
 
-section#bot i
+section#bot a#goUp i
 {
-  top: 8%; /*fix position*/
+  top: 11%; /*fix position*/
   height: 55px;
   width: 55px;
   color: #5E36FF;
 
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    background-color: rgba(251, 253, 255, 0.69);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.125);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(251, 253, 255, 0.69);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.125);
   padding: 10px 10px;
   border-radius: 50%;
 }
 
-section#bot i:hover
+section#bot a#goUp:hover i
 {
-  top: 7%; /*subtract 1%*/
+  top: 10%; /*subtract 1%*/
   background-color: white;
 }
+
+
+a#downloadBtn
+{
+  text-decoration:none;
+  background-color: transparent;
+  color: transparent;
+}
+
+a#downloadBtn:hover
+{
+  text-decoration: none;
+  background-color: transparent;
+  /* cursor: -webkit-grabbing; cursor: grabbing; */
+}
+
+a#downloadBtn i
+{
+  text-decoration:none;
+  z-index: 5;
+  top: 3%; /*fix position*/
+  left: 28%;
+  color: #5E36FF;
+  
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(251, 253, 255, 0.69);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+  border-radius: 50%;
+  padding: 10px 10px;
+  width: 55px;
+  height: 55px;
+  text-align: center;
+}
+
+a#downloadBtn i:hover
+{
+  text-decoration: none;
+  background-color: none;
+  top: 2%;
+  cursor: pointer;
+}
+
+
 
 #sampleSite
 {
@@ -326,13 +374,14 @@ section#bot i:hover
   border-radius: 50%;
   width: 1500px;
   height: 1500px;
-  margin-top: 3%;
+  margin-top: 5%;
 }
 
 #sampleSite h1
 {
+  left: 1%;
   font-size: 50px;
-  margin-top: 4%;
+  margin-top: 5%;
 }
 
 #sampleSite h2
@@ -350,9 +399,9 @@ section#bot i:hover
 
 #sampleSite button
 {
-  font-family: Lexend;
+  font-family: 'Lexend Exa';
   color: white;
-  font-size: 20px;
+  font-size: 1em;
   width: 120px;
   height: 50px;
   border-radius: 12px;
@@ -361,7 +410,7 @@ section#bot i:hover
 #sampleSite button:hover
 {
   cursor: pointer;
-  font-size: 21px;
+  font-size: 1em;
 }
 
 
@@ -369,7 +418,7 @@ section#bot i:hover
 
 #sampleSite
 {
-  transition-delay: 2000ms;
+  transition-delay: 200ms;
 }
 .hidden
 {
@@ -384,5 +433,3 @@ section#bot i:hover
   filter: blur(0);
 
 }
-
-
