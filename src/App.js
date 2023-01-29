@@ -1,10 +1,65 @@
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import { useEffect, useState } from 'react';
 import { Swatch } from './components/Swatch';
+import Blob1 from './components/Blob1';
+import Blob2 from './components/Blob2';
+import Blob3 from './components/Blob3';
+import Blob4 from './components/Blob4';
+import Blob5 from './components/Blob5';
+import Circle from './components/Circle';
+import chroma from 'chroma-js';
+
+
+import $ from 'jquery';
 import axios from 'axios';
 import './App.css';
 
 function App() {
+
+  const[color, setColor] = useState("blue")
+  const click = color=>{
+    setColor(color)
+  }
+
+  /*animation for swatches*/
+  const observer2 = new IntersectionObserver((entries) => {
+    entries.forEach((entry)=> {
+      console.log(entry)
+      if(entry.isIntersecting)
+      {
+        entry.target.classList.add('delay');
+      }
+      else 
+     {
+        entry.target.classList.remove('delay');
+      }
+    })
+  })
+
+  const delayEle = document.querySelectorAll('.norm');
+  delayEle.forEach((el)=>observer2.observe(el));
+
+  /*animation for section1*/
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry)=> {
+      console.log(entry)
+      if(entry.isIntersecting)
+      {
+        entry.target.classList.add('show');
+      }
+      else 
+     {
+        entry.target.classList.remove('show');
+      }
+    })
+  })
+  const hiddenElements = document.querySelectorAll('.hidden');
+  hiddenElements.forEach((el)=>observer.observe(el));
+
+  const BLACK = chroma('black');
+  const WHITE = chroma('white');
+  const BLWT = [BLACK, WHITE];
+  const BW = [BLACK.luminance(), WHITE.luminance()];
 
   const getRandomValue = (min, max) => {
     let randomVal = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -26,10 +81,433 @@ function App() {
 
   const getRandomHsv = () => {
     const h = getRandomValue(0, 359);
-    const s = getRandomValue(45, 100) / 100;
-    const v = getRandomValue(45, 100) / 100;
+    const s = getRandomValue(42, 95) / 100;
+    const v = getRandomValue(40, 95) / 100;
 
     return [h, s, v];
+  }
+
+  const calculateSaturation = (rgbColor) => {
+    const [r, g, b] = rgbColor;
+
+    const tempR = r / 255;
+    const tempG = g / 255;
+    const tempB = b / 255;
+
+    const cMax = Math.max(tempR, tempG, tempB);
+    const cMin = Math.min(tempR, tempG, tempB);
+
+    const delta = cMax - cMin;
+
+    const s = cMax !== 0 ? delta / cMax : 0;
+    return (Math.round(s * 10000)) / 10000;
+  }
+
+  const calculateLuminance = (rgbColor) => {
+    const temp = rgbColor.map((v) => {
+      v /= 255;
+      return v <= 0.03928
+            ? v / 12.92
+            : Math.pow( (v + 0.055) / 1.055, 2.4 );
+    });
+
+    return temp[0] * 0.2126 + temp[1] * 0.7152 + temp[2] * 0.0722;
+  }
+
+  const calculateContrast = (color1, color2) => {
+    let lum1, lum2;
+    if (typeof color1 === "object") {
+      lum1 = calculateLuminance(color1);
+    } 
+    else if (typeof color1 === "number") {
+      lum1 = color1;
+    }
+
+    if (typeof color2 === "object") {
+      lum2 = calculateLuminance(color2);
+    } 
+    else if (typeof color1 === "number") {
+      lum2 = color2;
+    }
+
+   if (lum1 > lum2) {
+    return ((lum2 + 0.05) / (lum1 + 0.05));
+   }
+   else {
+    return ((lum1 + 0.05) / (lum2 + 0.05));
+   }
+  }
+
+  const getRandomRgb = () => {
+    return hsvToRgb(getRandomHsv());
+  }
+
+  const complementaryColor = (hsvColor) => {
+    const newColor = [...hsvColor];
+    newColor[0] = (newColor[0] + 180) % 360;
+
+    return newColor;
+  }
+
+  const createColor = ({ hsvColor, newHue = hsvColor[0], newSaturation = hsvColor[1], newValue = hsvColor[2] }) => {
+    const newColor = [...hsvColor];
+    
+    newColor[0] = newHue < 0 ? newHue + 360 : newHue;
+    newColor[0] = newColor[0] % 360;
+    newColor[1] = newSaturation;
+    newColor[2] = newValue;
+
+    if (newColor[1] > 1) {
+      newColor[1] = newColor[1] - 0.8;
+    }
+    else if (newColor[1]  < 0) {
+      newColor[1] = newColor[1] + 0.8;
+    }
+
+    if (newColor[2] > 1) {
+      newColor[2] = newColor[2] - 0.8;
+    }
+    else if (newColor[2] < 0) {
+      newColor[2] = newColor[2] + 0.8;
+    }
+
+    return newColor;
+  }
+
+  const modifyColor = ({ hsvColor, newHue = hsvColor[0], newSaturation = hsvColor[1], newValue = hsvColor[2] }) => {
+    hsvColor[0] = newHue < 0 ? newHue + 360 : newHue;
+    hsvColor[0] = hsvColor[0] % 360;
+    hsvColor[1] = newSaturation;
+    hsvColor[2] = newValue;
+
+    if (hsvColor[1] > 1) {
+      hsvColor[1] = hsvColor[1] - 0.8;
+    }
+    else if (hsvColor[1]  < 0) {
+      hsvColor[1] = hsvColor[1] + 0.8;
+    }
+
+    if (hsvColor[2] > 1) {
+      hsvColor[2] = hsvColor[2] - 0.8;
+    }
+    else if (hsvColor[2] < 0) {
+      hsvColor[2] = hsvColor[2] + 0.8;
+    }
+  }
+
+  const calculateContrastLum = (luminance1, luminance2) => {
+    if (luminance1 > luminance2) {
+      return ((luminance2 + 0.05) / (luminance1 + 0.05));
+     }
+     else {
+      return ((luminance1 + 0.05) / (luminance2 + 0.05));
+     }
+  }
+  
+  const getTargetLuminance = (lum1, ratio) => {
+    let lum2 =  ((lum1 + 0.05) / ratio + 0.05);
+    if (lum2 < 0) {
+      lum2 = (ratio * ( lum1 + 0.05 ) - 0.05);
+    }
+    return lum2;
+  }
+
+  const calculateHue = (hue) => {
+    if (hue < 0) {
+      hue = 360 + hue;
+    }
+
+    return hue % 360;
+  }
+
+  const monochrome = (inputColor) => {
+    // Complies to W3C color contrast requirements
+    let baseColor = chroma(inputColor);
+    let rgbPalette = [];
+    let base1, base2, base3, base4, base5;
+
+    base1 = baseColor.luminance(getTargetLuminance(BW[getRandomValue(0, 1)], getRandomValue(25, 45) / 10));
+    rgbPalette.push(base1);
+
+    base2 = base1.darken();
+    rgbPalette.push(base2);
+
+    base3 = base1.brighten()
+    rgbPalette.push(base3);
+
+    base4 = base2.darken();
+    rgbPalette.push(base4);
+
+    base5 = base3.brighten();
+    rgbPalette.push(base5);
+
+    rgbPalette = rgbPalette.map((chromaColor) => { return chromaColor.rgb(); });
+    orderByLuminance(rgbPalette);
+
+    return Promise.resolve(rgbPalette);
+  }
+
+  const complement = (inputColor) => {
+    let baseColor = chroma(inputColor);
+    let rgbPalette = [];
+    let base1, base2, base3;
+
+    base1 = baseColor.luminance(getTargetLuminance(BW[getRandomValue(0, 1)], getRandomValue(25, 45) / 10));
+    rgbPalette.push(base1);
+    
+    base2 = base1.darken();
+    rgbPalette.push(base2);
+
+    base3 = base1.brighten()
+    rgbPalette.push(base3);
+
+    rgbPalette = rgbPalette.map((chromaColor) => { return chromaColor.rgb(); });
+
+    orderByLuminance(rgbPalette, -1);
+
+    rgbPalette.push([255 - rgbPalette[2][0], 255 - rgbPalette[2][1], 255 - rgbPalette[2][2]])
+    const idx = getRandomValue(0, 1);
+    rgbPalette.push([255 - rgbPalette[idx][0], 255 - rgbPalette[idx][1], 255 - rgbPalette[idx][2]])
+
+    return Promise.resolve(rgbPalette);
+  }
+
+  const analogica = (inputColor) => {
+    let baseColor = chroma(inputColor);
+    let rgbPalette = [];
+    let base1, base2, base3, base4, base5;
+
+    base1 = baseColor.luminance(getTargetLuminance(BW[getRandomValue(0, 1)], getRandomValue(25, 45) / 10));
+    rgbPalette.push(base1);
+
+    base2 = base1.darken(0.5);
+    rgbPalette.push(base2);
+
+    base3 = base1.brighten(0.5)
+    rgbPalette.push(base3);
+
+    base4 = base2.darken(0.5);
+    rgbPalette.push(base4);
+
+    base5 = base3.brighten(0.5);
+    rgbPalette.push(base5);
+
+    // let idx = [0, 1, 2, 3, 4], colorIdx, direction = 1;
+    // for (let i = 0; i < 3; i++) {
+    //   colorIdx = idx.splice(getRandomValue(0, idx.length - 1), 1)[0];
+
+    //   if (getRandomValue(-1, 1) < 0) {
+    //     direction = -1
+    //   }
+
+    //   rgbPalette[colorIdx] =  rgbPalette[colorIdx].set('hsv.h', calculateHue(rgbPalette[colorIdx].get('hsv.h') + (direction * getRandomValue(30, 60))));
+    // }
+
+    
+    rgbPalette.sort((a, b) => { return b.luminance() - a.luminance(); });
+
+    let direction = getRandomValue(-1, 1), brightenVal, saturateVal;
+    if (direction < 0) {
+      direction = -1
+    }
+    else {
+      direction = 1;
+    }
+
+    for (let i = 0; i < 3; i++) {
+      brightenVal = getRandomValue(10, 100) / 100;
+      saturateVal = getRandomValue(10, 100) / 100;
+      direction = -1 * direction;
+      rgbPalette[i] =  rgbPalette[i].set('hsv.h', calculateHue(rgbPalette[i].get('hsv.h') + (direction * getRandomValue(30, 60))));
+      rgbPalette[i] = rgbPalette[i].brighten(brightenVal);
+      rgbPalette[i] = rgbPalette[i].saturate(saturateVal);
+    }
+
+
+    rgbPalette = rgbPalette.map((chromaColor) => { return chromaColor.rgb(); });
+    orderByLuminance(rgbPalette);
+
+    for (let r of rgbPalette) {
+      console.log(1 / calculateContrast(rgbPalette[0], r));
+    }
+
+    return Promise.resolve(rgbPalette);
+  }
+
+  const analogic = (inputColor) => {
+    const lum1 = calculateLuminance([127, 127, 127]);
+    const inputHsv = rgbToHsv(inputColor);
+    
+    const lum = calculateLuminance(inputColor);
+    let outputColor, lum2;
+    for (let i = 0.01; i <= 1; i += 0.01) {
+      outputColor = hslToRgb([inputHsv[0], i, 1 - lum1]);
+      lum2 = calculateLuminance(outputColor);
+      console.log(lum, lum1, lum2)
+    }
+
+
+    return Promise.resolve([inputColor, outputColor]);
+  }
+
+  const analogicAlt = (rgbColor) => {
+    const baseColor = rgbToHsv(rgbColor);
+    const hueModifier = getRandomValue(20, 40);
+
+    const leftColor = createColor({hsvColor: baseColor, newHue: baseColor[0] - hueModifier});
+
+    const rightColor = createColor({hsvColor: baseColor, newHue: baseColor[0] + hueModifier});
+
+    let leftDirection;
+    if (getRandomValue(-1, 1) > 0) {
+      leftDirection = 1
+    }
+    else {
+      leftDirection = -1
+    }
+
+    const leftColor2 = createColor({
+      hsvColor: leftColor, 
+      newSaturation: leftColor[1] +  (leftDirection * getRandomValue(20, 30) / 100),
+      newValue: leftColor[2] - (leftDirection * getRandomValue(20, 30) / 100),
+    });
+
+    let rightDirection;
+    if (getRandomValue(-1, 1) > 0) {
+      rightDirection = 1
+    }
+    else {
+      rightDirection = -1
+    }
+
+    const rightColor2 = createColor({
+      hsvColor: rightColor, 
+      newSaturation: rightColor[1] + (rightDirection * getRandomValue(20, 30) / 100),
+      newValue: rightColor[2] - (rightDirection * getRandomValue(20, 30) / 100),
+    });
+
+    // const hsvPalette = [leftColor2, leftColor, baseColor, rightColor, rightColor2];
+    const hsvPalette = [leftColor, baseColor, rightColor];
+    const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
+    orderByLuminance(rgbPalette);
+
+    for (let r of rgbPalette) {
+      console.log(calculateLuminance(r));
+    }
+
+    // orderByColor(rgbPalette);
+
+    return rgbPalette;
+  }
+
+  const equivalentGray = (rgbColor) => {
+    const luminance = calculateLuminance(rgbColor);
+
+    let l = 0, r = 255;
+
+    let mid, midLum;
+    while (l < r) {
+      mid = (l + r) / 2;
+      midLum = calculateLuminance([mid, mid, mid]);
+
+      if (midLum === luminance) {
+        break;
+      }
+      else if (midLum > luminance) {
+        r = mid - 1;
+      }
+      else {
+        l = mid + 1;
+      }  // midLum < luminance
+
+    }
+
+    return Math.round(mid);
+  }
+
+  const hslToRgb = (hslColor) => {
+    const [h, s, l] = hslColor;
+
+    const c = (1 - Math.abs((2 * l) - 1)) * s;
+
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+
+    const m = l - (c / 2);
+
+    let tempR = 0, tempG = 0, tempB = 0;
+    if (h < 60) {
+      tempR = c;
+      tempG = x;
+    }
+    else if (h < 120) {
+      tempR = x;
+      tempG = c;
+    }
+    else if (h < 180) {
+      tempG = c;
+      tempB = x;
+    }
+    else if (h < 240) {
+      tempG = x;
+      tempB = c;
+    }
+    else if (h < 300) {
+      tempR = x;
+      tempB = c;
+    }
+    else if (h < 360) {
+      tempR = c;
+      tempB = x;
+    }
+
+    const r = (tempR + m) * 255;
+    const g = (tempG + m) * 255;
+    const b = (tempB + m) * 255;
+
+    // console.log(h, s, l);
+    // console.log(tempR, tempB, tempG);
+    // console.log(r, g, b);
+    return [Math.round(r), Math.round(g), Math.round(b)];
+  }
+  
+  const rgbToHsl = (rgbColor) => {
+    const [r, g, b] = rgbColor;
+
+    const newR = r / 255;
+    const newG = g / 255;
+    const newB = b / 255;
+
+    const cMax = Math.max(newR, newG, newB);
+    const cMin = Math.min(newR, newG, newB);
+
+    const delta = cMax - cMin;
+    let h = 0, s = 0, l = 0;
+
+    if (cMax === newR) {
+        h = 60 * (((newG - newB) / delta) % 6);
+    }
+    else if (cMax === newG) {
+        h = 60 * (((newB - newR) / delta) + 2);
+    }
+    else if (cMax === newB) {
+        h = 60 * (((newR - newG) / delta) + 4);
+    }
+
+    if (h <= 0) {
+      h = 360 + h;
+    }
+
+    l = (cMax + cMin) / 2;
+
+    if (delta !== 0) {
+        s = delta / (1 - Math.abs((2 * l) - 1));
+    }
+
+    h = Math.round(h % 360);
+    s = (Math.round(s * 10000)) / 10000;
+    l = (Math.round(l * 10000)) / 10000;
+
+    return [h, s, l];
   }
 
   const hsvToRgb = (hsvColor) => {
@@ -74,22 +552,6 @@ function App() {
     return [r, g, b];
   }
 
-  const calculateSaturation = (rgbColor) => {
-    const [r, g, b] = rgbColor;
-
-    const tempR = r / 255;
-    const tempG = g / 255;
-    const tempB = b / 255;
-
-    const cMax = Math.max(tempR, tempG, tempB);
-    const cMin = Math.min(tempR, tempG, tempB);
-
-    const delta = cMax - cMin;
-
-    const s = cMax !== 0 ? delta / cMax : 0;
-    return (Math.round(s * 10000)) / 10000;
-  }
-
   const rgbToHsv = (rgbColor) => {
     const [r, g, b] = rgbColor;
 
@@ -128,269 +590,6 @@ function App() {
     return [h, s, v];
   }
 
-  const calculatetLuminance = (rgbColor) => {
-    const temp = rgbColor.map((v) => {
-      v /= 255;
-      return v <= 0.03928
-            ? v / 12.92
-            : Math.pow( (v + 0.055) / 1.055, 2.4 );
-    });
-
-    return temp[0] * 0.2126 + temp[1] * 0.7152 + temp[2] * 0.0722;
-  }
-
-  const calculateContrast = (color1, color2) => {
-    const luminance1 = calculatetLuminance(color1);
-    const luminance2 = calculatetLuminance(color2);
-
-   if (luminance1 > luminance2) {
-    return ((luminance2 + 0.05) / (luminance1 + 0.05));
-   }
-   else {
-    return ((luminance1 + 0.05) / (luminance2 + 0.05));
-   }
-  }
-
-  const getRandomRgb = () => {
-    return hsvToRgb(getRandomHsv());
-  }
-
-  const complementaryColor = (hsvColor) => {
-    const [...newColor] = hsvColor;
-    newColor[0] = (newColor[0] + 180) % 360;
-
-    return newColor;
-  }
-
-  const complement = (customColor) => {
-    const firstColor = rgbToHsv(customColor);
-    // const [...firstVariant1] = firstColor;
-    // const [...firstVariant2] = firstColor;
-
-    // const [...secondColor] = firstColor;
-    // secondColor[0] = (secondColor[0] + 180) % 360;
-
-    // const [...secondVariant] = secondColor;
-    
-    // Edit the hue, saturation, and value of the variants
-
-
-    const [...secondColor] = firstColor; // color 2
-    secondColor[0] = (secondColor[0] + 180) % 360;
-
-    const [...thirdColor] = firstColor; // lighter color 1
-    // thirdColor[1] -= .02;
-    thirdColor[2] = getRandomValue(85, 90) / 100;
-
-
-    const [...fourthColor] = secondColor;  // lighter / darker color 1
-    // fourthColor[1] -= .02 ;
-    // fourthColor[2] = .9;
-    if (0.9 - fourthColor[2] > fourthColor[2] - 0.3) {
-      fourthColor[2] = getRandomValue(85, 90) / 100;
-    }
-    else {
-      fourthColor[2] = getRandomValue(30, 35) / 100;
-    }
-
-
-    const [...fifthColor] = firstColor;  // darker color 1
-    fifthColor[2] = getRandomValue(30, 35) / 100;
-
-    const hsvPalette = [fifthColor, firstColor, thirdColor, secondColor, fourthColor];
-    const rgbPalette = hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
-
-    return rgbPalette;
-  }
-
-  const monochrome = (customColor) => {
-    // s: 20 40 60 80 100
-    // v: 20 40 60 80 100
-
-    const baseColor = rgbToHsv(customColor);
-
-    let hsvPalette = [];
-    if (baseColor[2] <= 0.20) {
-      const color1 = [...baseColor];
-      const color2 = [...baseColor];
-      const color3 = [...baseColor];
-      const color4 = [...baseColor];
-
-      color1[2] = getRandomValue(25, 40) / 100;
-      color2[2] = getRandomValue(45, 60) / 100;
-      color3[2] = getRandomValue(65, 80) / 100;
-      color4[2] = getRandomValue(85, 100) / 100;
-
-      hsvPalette = [baseColor, color1, color2, color3, color4];
-    }
-    else if (baseColor[2] <= 0.40) {
-      const color1 = [...baseColor];
-      const color2 = [...baseColor];
-      const color3 = [...baseColor];
-      const color4 = [...baseColor];
-
-      color1[2] = getRandomValue(18, 23) / 100;
-      color2[2] = getRandomValue(45, 60) / 100;
-      color3[2] = getRandomValue(65, 80) / 100;
-      color4[2] = getRandomValue(85, 100) / 100;
-
-      hsvPalette = [color1, baseColor, color2, color3, color4];
-    }
-    else if (baseColor[2] <= 0.60) {
-      const color1 = [...baseColor];
-      const color2 = [...baseColor];
-      const color3 = [...baseColor];
-      const color4 = [...baseColor];
-
-      color1[2] = getRandomValue(18, 23) / 100;
-      color2[2] = getRandomValue(25, 40) / 100;
-      color3[2] = getRandomValue(65, 80) / 100;
-      color4[2] = getRandomValue(85, 100) / 100;
-
-      hsvPalette = [color1, color2, baseColor, color3, color4];
-    }
-    else if (baseColor[2] <= 0.80) {
-      const color1 = [...baseColor];
-      const color2 = [...baseColor];
-      const color3 = [...baseColor];
-      const color4 = [...baseColor];
-
-      color1[2] = getRandomValue(18, 23) / 100;
-      color2[2] = getRandomValue(25, 40) / 100;
-      color3[2] = getRandomValue(45, 60) / 100;
-      color4[2] = getRandomValue(85, 100) / 100;
-
-      hsvPalette = [color1, color2, color3, baseColor, color4];
-    }
-    else if (baseColor[2] <= 1.00) {
-      const color1 = [...baseColor];
-      const color2 = [...baseColor];
-      const color3 = [...baseColor];
-      const color4 = [...baseColor];
-
-      color1[2] = getRandomValue(18, 23) / 100;
-      color2[2] = getRandomValue(25, 40) / 100;
-      color3[2] = getRandomValue(45, 60) / 100;
-      color4[2] = getRandomValue(65, 80) / 100;
-
-      hsvPalette = [color1, color2, color3, color4, baseColor];
-    } 
-
-    return hsvPalette.map((hsvColor) => {return hsvToRgb(hsvColor);});
-  }
-
-
-
-  const modifyColor = ({ hsvColor, newHue = null, newSaturation = null, newValue = null }) => {
-    const newColor = [...hsvColor];
-    
-    if (newHue) {
-      newColor[0] = newHue < 0 ? newHue + 360 : newHue;
-      newColor[0] = newColor[0] % 360;
-    } 
-    if (newSaturation) newColor[1] = newSaturation;
-    if (newValue) newColor[2] = newValue;
-
-    return newColor;
-  }
-
-  const analogic = (rgbColor) => {
-    const baseColor = rgbToHsv(rgbColor);
-    const hueModifier = getRandomValue(13, 30);
-
-    const leftColor1 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] - hueModifier});
-    const leftColor2 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] - (2 * hueModifier)});
-    const rightColor1 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] + hueModifier});
-    const rightColor2 = modifyColor({hsvColor: baseColor, newHue: baseColor[0] + (2 * hueModifier)});
-
-    const hsvPalette = [leftColor2, leftColor1, baseColor, rightColor1, rightColor2]
-    return hsvPalette.map((hsvSwatch) => {return hsvToRgb(hsvSwatch);});
-  }
-
-  const hslToRgb = (hslColor) => {
-    const {h, s, l} = hslColor;
-
-    const c = (1 - Math.abs((2 * l) - 1)) * s;
-
-    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-
-    const m = l - (c / 2);
-
-    let tempR = 0, tempG = 0, tempB = 0;
-    if (h < 60) {
-      tempR = c;
-      tempG = x;
-    }
-    else if (h < 120) {
-      tempR = x;
-      tempG = c;
-    }
-    else if (h < 180) {
-      tempG = c;
-      tempB = x;
-    }
-    else if (h < 240) {
-      tempG = x;
-      tempB = c;
-    }
-    else if (h < 300) {
-      tempR = x;
-      tempB = c;
-    }
-    else if (h < 360) {
-      tempR = c;
-      tempB = x;
-    }
-
-    const r = (tempR + m) * 255;
-    const g = (tempG + m) * 255;
-    const b = (tempB + m) * 255;
-
-    // console.log(h, s, l);
-    // console.log(tempR, tempB, tempG);
-    // console.log(r, g, b);
-    return [Math.round(r), Math.round(g), Math.round(b)];
-  }
-
-  const rbgToHsl = (rgbColor) => {
-    const [r, g, b] = rgbColor;
-
-    const newR = r / 255;
-    const newG = g / 255;
-    const newB = b / 255;
-
-    const cMax = Math.max(newR, newG, newB);
-    const cMin = Math.min(newR, newG, newB);
-
-    const delta = cMax - cMin;
-    let h = 0, s = 0, l = 0;
-
-    // if (delta === 0) {
-    //     const 
-    // }
-    if (cMax === newR) {
-        h = 60 * (((newG - newB) / delta) % 6);
-    }
-    else if (cMax === newG) {
-        h = 60 * (((newB - newR) / delta) + 2);
-    }
-    else if (cMax === newB) {
-        h = 60 * (((newR - newG) / delta) + 4);
-    }
-
-    if (h <= 0) {
-      h = 360 - h;
-    }
-
-    l = (cMax + cMin) / 2;
-
-    if (delta !== 0) {
-        s = delta / (1 - Math.abs((2 * l) - 1));
-    }
-
-    return [`${Math.round(h)}`, `${Math.round(s * 100)}%`, `${Math.round(l * 100)}%`]
-  }
-
   const valueToHex = (value) => {
     const hexValue = value.toString(16);
     return hexValue.length === 1 ? `0${hexValue}` : hexValue;
@@ -420,10 +619,10 @@ function App() {
 
     let modes;
     if (hsvSeed[1] < .2 || hsvSeed[2] < .2) {
-      modes = ['monochrome', 'random'];
+      modes = ['monochrome', 'complement'];
     }
     else {
-      modes = ['monochrome', 'analogic', 'complement'];
+      modes = ['monochrome', 'complement'];
     }
 
     return modes[getRandomValue(0, modes.length - 1)];
@@ -431,41 +630,25 @@ function App() {
 
   const [customizer, setCustom] = useState(getRandomRgb());
   const [colorPalette, setPalette] = useState(null);
-  // const [imgFile, setImg] = useState(null);
-
-  const allColorData = (rgbColor) => {
-    const colorData = {};
-
-    colorData.rgb = rgbColor;
-    colorData.hex = rgbToHex(rgbColor);
-    colorData.hsl = rbgToHsl(rgbColor);
-    colorData.hsv = rgbToHsv(rgbColor);
-
-    return colorData;
-  }
-
+  const [inputImg, setImg] = useState(null);
+  
   const fetchPalette = async (custom) => {
-    var data = {
-      model : "default",
-      input : [custom, "N", "N", "N", "N"],
-    }
+    // // For debugging each palette mode
+    // let rawPalette;
+    // rawPalette = await analogic(custom);
+    // // rawPalette = rawPalette.concat(await complementAlt2(custom));
 
     const paletteMode = randomizeMode(custom);
-    const res = await axios.post('http://colormind.io/api/', JSON.stringify(data));
-
     let rawPalette;
-    if (paletteMode === 'random') {
-      rawPalette = res.data.result;
-    }
-    else if (paletteMode === 'monochrome') {
-      rawPalette = monochrome(res.data.result[0]);
-    }
-    else if (paletteMode === 'analogic') {
-      rawPalette = analogic(res.data.result[0]);
+    if (paletteMode === 'monochrome') {
+      rawPalette = await monochrome(custom);
     }
     else if (paletteMode === 'complement') {
-      rawPalette = complement(res.data.result[0]);
+      rawPalette = await complement(custom);
     }
+    // else if (paletteMode === 'analogic') {
+    //   rawPalette = analogic(custom);
+    // }
 
     setPalette(rawPalette);
   }
@@ -481,33 +664,23 @@ function App() {
       return "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({}));
     }
 
-    const data = {
-        'swatch-1': {
-          'rgb': palette[0],
-          'hex': rgbToHex(palette[0]),
-          'hsl': rbgToHsl(palette[0])
-        },
-        'swatch-2': {
-          'rgb': palette[1],
-          'hex': rgbToHex(palette[1]),
-          'hsl': rbgToHsl(palette[1])
-        },
-        'swatch-3': {
-          'rgb': palette[2],
-          'hex': rgbToHex(palette[2]),
-          'hsl': rbgToHsl(palette[2])
-        },
-        'swatch-4': {
-          'rgb': palette[3],
-          'hex': rgbToHex(palette[3]),
-          'hsl': rbgToHsl(palette[3])
-        },
-        'swatch-5': {
-          'rgb': palette[4],
-          'hex': rgbToHex(palette[4]),
-          'hsl': rbgToHsl(palette[4])
-        },
-    };
+    const data = {};
+
+    let pRgb, pHex, pHsl;
+    for (let p in palette) {
+      pRgb = palette[p];
+      pHex = rgbToHex(pRgb);
+      pHsl = rgbToHsl(pRgb);
+
+      pRgb = `rgb(${pRgb[0]}, ${pRgb[1]}, ${pRgb[2]})`;
+      pHsl = `hsl(${pHsl[0]}, ${Math.round(pHsl[1] * 100)}%, ${Math.round(pHsl[2] * 100)}%)`;
+      
+      data[`swatch-${p + 1}`] = {
+        'hex': pHex,
+        'rgb': pRgb,
+        'hsl': pHsl
+      }
+    }
 
     const download = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
 
@@ -609,29 +782,6 @@ function App() {
     ];
   };
 
-  // const calculateHueDifference = (rgbValue, rgbValue)
-
-  const calculateColorDistance = (rgbValue1, rgbValue2) => {
-    // Calculates the squared distance between two rgb values
-    const distR = Math.pow(rgbValue1[0] - rgbValue2[0], 2);
-    const distG = Math.pow(rgbValue1[1] - rgbValue2[1], 2);
-    const distB = Math.pow(rgbValue1[2] - rgbValue2[2], 2);
-
-    return distR + distG + distB;
-  }
-
-  const isBlack = (rgbColor) => {
-    return (rgbColor[0] === 0) && (rgbColor[1] === 0) && (rgbColor[2] === 0);
-  }
-
-  const isWhite = (rgbColor) => {
-    return (rgbColor[0] === 255) && (rgbColor[1] === 255) && (rgbColor[2] === 255);
-  }
-
-  // const isColor = (rgbColor) => {
-  //   return (rgbColor[0] < 255 && rgbColor[0] > 0) || (rgbColor[1] < 255 && rgbColor[1] > 0) || (rgbColor[2] < 255 && rgbColor[2] > 0);
-  // }
-
   const isColor = (rgbColor) => {
     return calculateSaturation(rgbColor) !== 0;
   }
@@ -644,7 +794,6 @@ function App() {
       difference = calculateContrast(base, rgbValues[i]);
 
       if (difference < 0.9) {
-        // console.log(difference);
         tempValues.push(rgbValues[i]);
         base = rgbValues[i];
       }
@@ -657,13 +806,11 @@ function App() {
     }
 
     if (finalValues.length < 5) {
-      console.log(finalValues);
       fillMissing(finalValues);
     }
     else if (finalValues.length > 5) {
       finalValues = finalValues.slice(0, 5);
     }
-
 
     return finalValues;
   }
@@ -672,7 +819,7 @@ function App() {
     
     for (let i = 0, pos, newColor; i < 5 - rgbValues.length; i++) {
       pos = getRandomValue(0, rgbValues.length - 1);
-      newColor = modifyColor({hsvColor: rgbToHsv(rgbValues[pos]),
+      newColor = createColor({hsvColor: rgbToHsv(rgbValues[pos]),
         newHue: getRandomValue(-5, 5),
         newSaturation: getRandomValue(-3, 3) / 100,
         newValue: getRandomValue(-3, 3) / 100}
@@ -681,9 +828,24 @@ function App() {
     };
   }
 
-  const orderByLuminance = (rgbValues) => {
+  const orderByLuminance = (rgbValues, order=1) => {
     // Order the colors by relative luminance, lightest to darkest
-    rgbValues.sort((a, b) => { return calculatetLuminance(b) - calculatetLuminance(a); });
+    rgbValues.sort((a, b) => { 
+      const lumA = calculateLuminance(a);
+      const lumB = calculateLuminance(b);
+
+      return order * (lumB - lumA); 
+    });
+  }
+
+  const orderByColor = (rgbValues) => {
+    // Order the colors by relative luminance, lightest to darkest
+    rgbValues.sort((a, b) => { 
+      const hueA = rgbToHsv(a)[0];
+      const hueB = rgbToHsv(b)[0];
+
+      return hueB - hueA; 
+    });
   }
   
   const extractColors = (imgFile) => {
@@ -746,26 +908,13 @@ useEffect(() => {
   (async () => {
     const custom = getRandomRgb();
 
-    var data = {
-      model : "default",
-      input : [custom, "N", "N", "N", "N"],
-    }
-
     const paletteMode = randomizeMode(custom);
-    const res = await axios.post('http://colormind.io/api/', JSON.stringify(data));
-
     let rawPalette;
-    if (paletteMode === 'random') {
-      rawPalette = res.data.result;
-    }
-    else if (paletteMode === 'monochrome') {
-      rawPalette = monochrome(res.data.result[0]);
-    }
-    else if (paletteMode === 'analogic') {
-      rawPalette = analogic(res.data.result[0]);
+    if (paletteMode === 'monochrome') {
+      rawPalette = await monochrome(custom);
     }
     else if (paletteMode === 'complement') {
-      rawPalette = complement(res.data.result[0]);
+      rawPalette = await complement(custom);
     }
 
     setPalette(rawPalette);
@@ -773,34 +922,146 @@ useEffect(() => {
   })();
   }, []);
 
+  const sampleWebsite = () => {
+    let rawPalette = [...colorPalette];
+    orderByLuminance(rawPalette);
+
+    let rgbPalette = rawPalette.map((rgb) => {
+      const [r, g, b] = rgb;
+      return `rgb(${r},${g},${b})`;
+    })
+
+    let namedPalette = {
+
+    };
+
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 5; j++) {
+        if (1 / calculateContrast(rawPalette[i], rawPalette[j]) >= 4.5) {
+          if (namedPalette[rgbPalette[i]] === undefined) {
+            namedPalette[rgbPalette[i]] = []
+          }
+
+          namedPalette[rgbPalette[i]].push(rgbPalette[j]);
+        }
+      }
+    }
+
+    let namedSwatches = Object.keys(namedPalette);
+    if (namedSwatches.length === 0) {
+      return;
+    }
+
+    let bg1, bg2, swatch1, swatch2, fg1, fg2, t;
+
+    bg1 = namedSwatches.splice(getRandomValue(0, namedSwatches.length - 1), 1)[0];
+
+    bg2 = namedSwatches.splice(getRandomValue(0, namedSwatches.length - 1), 1)[0];
+
+    if (namedPalette[bg2].length > namedPalette[bg1].length) {
+      t = bg1;
+      bg1 = bg2;
+      bg2 = t;
+    }
+
+    swatch1 = namedPalette[bg1];
+    swatch2 = namedPalette[bg2];
+
+    fg1 = []
+    if (swatch1.length > 1) {
+      t = getRandomValue(0, swatch1.length - 2)
+      fg1 = swatch1.slice(t, t + 2);
+    }
+    else {
+      fg1 = [swatch1[0], swatch1[0]];
+    }
+
+    fg2 = swatch2[getRandomValue(0, swatch2.length - 1)];
+
+    return (
+      <div id="sampleSite" className = "hidden" 
+      style={{  backgroundColor: bg1}}>
+    <h1 style={{color: fg1[0]}}>Sample Website</h1>
+    <h2 style={{color: fg1[1] }}>Lorem ipsum dolor sit amet,</h2>
+    <p style={{color: fg1[1] }}>consectetur adipiscing elit. Fusce ornare dui ipsum, ut consequat libero mattis sit amet. Nam vel sodales diam, nec gravida elit. Sed nibh sapien, pharetra et dapibus ac, auctor eu ipsum.</p>
+    <button id="sampleButton" style={{backgroundColor: bg2, color: fg2, border: fg2}}>Click me!</button>
+  </div>
+    );
+  }
 
   return (
     <div className="App">
+      <section className = "hidden" id="top" >
+        <div className = "elementsContainer">
 
-      <input type="color" onChange={(e) => {
-        setCustom(hexToRgb(e.target.value));
-      }}></input>
+        <Blob1 className="bg"/>
+        <Blob2 className="bg"/>
+        <Blob3 className="bg"/>
+        <Blob4 className="bg"/>
+        <Blob5 className="bg"/>
+        <Circle className="bg"/>
 
-      {/* <input type="color" value={customizer}></input> */}
+          <p className = "behind"> WHITELIGHT </p>
+          <p className = "front"> WHITELIGHT </p>
+
+          <div id = "optionCP"> 
+            <button className="option-text" id = "pick-text" onClick={() => fetchPalette(customizer)}> <a href="#bot"> colorpick </a></button>
+            <input className = "colorPick" type="color" onChange={(e) => { setCustom(hexToRgb(e.target.value));}} />
+          </div>
+
+          <div id = "optionU">
+            <button className="option-text" id = "upld-text"
+            onClick={e => {if ($('#imgfile')[0].files.length === 0) {
+              alert("WARNING: You have not uploaded any image.");
+              }
+              else
+              {
+                $('#upld-anchor').attr('href',"#bot");
+                $('#upld-text').attr('href',"#bot");
+              }
+              
+            }}> <a id = "upld-anchor" href="#"> upload </a> </button>
+            <input type="file" id="imgfile" onChange={(e) => { extractColors(e.target.files[0]); }} />
+          </div>
+
+          <div id="labelBorder">
+            <label for="imgfile" className = "upldBtn" >
+              <i className="fa-solid fa-upload fa-3x"></i>
+            </label>
+          </div>
+        
+          <div id = "optionRan">
+            <div id = "ranIcon">
+              <a href="#bot" onClick={() => fetchPalette(getRandomRgb())}>
+              <i class="fa-solid fa-question fa-3x"></i>
+              </a>
+            </div>
+          
+            <button className = "option-text" id = "random-text" onClick={() => fetchPalette(getRandomRgb())}> <a href="#bot"> random </a></button>
+          </div>
+
+        </div>
+      </section>
+
+      
+      <section className = "hidden" id="bot">
+        <br />
+
+        <div className="palette" >
+          {colorPalette ? colorPalette.map((rawColor, index) => {return (<Swatch rgbColor={rawColor} onChange={(e) => {changePalette(index, hexToRgb(e.target.value));}} />)}) : null }
+          <br />
+        </div>
+        
+        <a id = "goUp" href = "#top"> <i class="fa-solid fa-angles-up fa-3x"></i> </a>
+
+        <a id = "downloadBtn" href={`data:${exportPalette(colorPalette)}`} download="color.json" className='hidden copier'><i class="fa-regular fa-floppy-disk fa-3x"></i></a>
 
 
-      <br />
-
-      <button onClick={() => fetchPalette(getRandomRgb())}> Generate random palette </button>
-      <button onClick={() => fetchPalette(customizer)}> Generate palette from color picker </button>
-
-      <input type="file" id="imgfile" onChange={(e) => { extractColors(e.target.files[0]); }} />
+        {colorPalette ? sampleWebsite() : null}
 
 
-      <br />
-
-      {colorPalette ? colorPalette.map((rawColor, index) => {return (<Swatch rgbColor={rawColor} onChange={(e) => {changePalette(index, hexToRgb(e.target.value));}} />)}) : null }
-
-      <br />
-{/* 
-      <a href={`data:${exportPalette(colorPalette)}`} download="color.json" className='copier'>Download</a> */}
-
-    </div>
+      </section>
+  </div>
   );
 }
 
