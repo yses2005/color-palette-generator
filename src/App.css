@@ -1,38 +1,435 @@
+/*font:  Lexend*/
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Exa:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 .App {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+*
+{ margin: auto;
+  padding: 0;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  transition: 0.3s;
+  scroll-behavior: smooth;
+
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+body
+{
+  background: white;
+  font-family: 'Lexend Exa', sans-serif;
+  font-style: normal;
+  font-weight: 400;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+
+.elementsContainer
+{
+  z-index: 1;
+  height: 1024px;
+  width: 1500px;
+}
+
+#sampleButton {
+  text-align: center;
+  font-size: 5 px;
+}
+#sampleButton a {
+  font-family: 'Lexend Exa', sans-serif;
+}
+
+#top 
+{
+  background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(237,237,247,1) 67%, rgba(162,168,238,1) 100%);
+}
+p.front
+{
+  z-index: 1;
+  position: absolute;
+  top: 20%;
+  left: 14%;
+
+  font-size: 141px;
+  line-height: 103.52%;
+
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  text-align: center;
+  color: #000000;
+  text-shadow: -10px 6px 4px rgba(74, 14, 14, 0.25);
+}
+
+p.behind
+{
+  z-index: 1;
+
+  position: absolute;
+  top: 20.5%;
+  left: 13.5%;
+  font-size: 141px;
+  line-height: 103.52%;
+  /* identical to box height, or 146px */
+
+  display: flex;
+  align-items: center;
+  text-align: center;
+
+  background: linear-gradient(180deg, #5B3DD1 0%, rgba(243, 244, 152, 0.351042) 64.9%, rgba(0, 0, 0, 0) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+
+  text-shadow: -10px 6px 4px rgba(74, 14, 14, 0.25);
+}
+
+input.colorPick
+{
+  z-index: 1;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 94px;
+  height: 94px;
+  border-radius: 50%;
+  border: 0.5rem outset #5E36FF;
+  background-color: transparent;
+  top: 40%;
+  left: -30%;
+  cursor: pointer;
+}
+
+input.colorPick::-webkit-color-swatch
+{
+  margin: 2px;
+  border-radius: 50%;
+}
+
+input.colorPick::-moz-color-swatch
+{
+  margin: 2px;
+  border-radius: 50%;
+}
+
+
+input#imgfile
+{
+  display: none;
+}
+
+
+#labelBorder
+{
+    z-index: 1;
+    border: 0.5rem outset #5E36FF;
+    border-radius: 50%;
+    width: 84px;
+    height: 84px;
+    left: -7%;
+    top: -1%;
+}
+
+#labelBorder:hover
+{
+    z-index: 1;
+    border: 0.5rem outset #5E36FF;
+    border-radius: 50%;
+    width: 84px;
+    height: 84px;
+    left: -7%;
+    top: -2%;
+}
+
+label.upldBtn
+{
+  cursor: pointer;
+}
+
+label.upldBtn i
+{
+  margin-top: 5%;
+  height: 55px;
+  width: 55px;
+  color: white;
+  background-color: #5E36FF;
+  padding: 10px 10px;
+  border-radius: 50%;
+}
+
+
+#ranIcon
+{
+  z-index: 2;
+  border: 0.5rem outset #5E36FF;
+  border-radius: 50%;
+  width: 84px;
+  height: 84px;
+  left: -29%;
+  top: 38%;
+  cursor: pointer;
+}
+
+#ranIcon i
+{
+  margin-top: 5%;
+  height: 55px;
+  width: 55px;
+  color: white;
+  background-color: #5E36FF;
+  padding: 10px 10px;
+  border-radius: 50%;
+}
+
+
+button.option-text
+{
+  z-index: 1;
+  position: absolute;
+  width: 274px;
+  height: 94px;
+  top: 40%;
+  left: 20%;
+  background: linear-gradient(150deg, #AD2DFB -10.82%, rgba(243, 244, 152, 0.351042) 43.86%, rgba(63, 63, 53, 0) 101.48%);
+  box-shadow: inset -2px 4px 10px #5E36FF;
+  border-radius: 180px;
+  border: white;
+  font-family: 'Lexend Exa';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 51px;
+  line-height: 103.52%;
+
+  display: flex;
+  align-items: center;
+  text-align: center;
+  letter-spacing: -0.135em;
+
+  text-indent: 5%;
+}
+
+button.option-text:hover
+{
+  background-color: #5E36FF;
+}
+
+button.option-text:hover a
+{
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+
+button#random-text
+{
+  font-size: 40px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+button#upld-text
+{
+  top: 0%;
+}
+
+button#pick-text
+{
+  font-size: 43px;
+  text-indent: 5%;
+}
+
+input.colorPick:hover
+{
+  font-size: 43px;
+  text-indent: 5%;
+  top: 36%;
+}
+
+
+#ranIcon:hover
+{
+  top: 34%;
+}
+
+#optionCP
+{
+  width: 500px;
+  height: 200px;
+  top: 30%;
+  left: -20%;
+}
+
+#optionU
+{
+  width: 500px;
+  height: 200px;
+  top: 18.5%;
+  left: 3%;
+  transition: 0.5s;
+}
+
+#optionRan
+{
+  width: 500px;
+  height: 200px;
+  top: -18.5%;
+  left: 26%;
+}
+
+
+/*bot nav*/
+section#bot 
+{
+  height: 1024px;
+  width: 1500px;
+
+  background-color: #12123a;
+  background-image: 
+        radial-gradient(at 47% 33%, hsl(264.23, 80%, 54%) 0, transparent 59%), 
+        radial-gradient(at 82% 65%, hsl(0.00, 12%, 34%) 0, transparent 55%);
+}
+
+.palette
+{
+  top:  5%;
+  width: 900px;
+  display: flex;
+  border: white;
+}
+
+section#bot a#goUp
+{
+  z-index: 4;
+  left: 3%;
+}
+
+section#bot a#goUp i
+{
+  top: 11%; /*fix position*/
+  height: 55px;
+  width: 55px;
+  color: #5E36FF;
+
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(251, 253, 255, 0.69);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+  padding: 10px 10px;
+  border-radius: 50%;
+}
+
+section#bot a#goUp:hover i
+{
+  top: 10%; /*subtract 1%*/
+  background-color: white;
+}
+
+
+a#downloadBtn
+{
+  text-decoration:none;
+  background-color: transparent;
+  color: transparent;
+}
+
+a#downloadBtn:hover
+{
+  text-decoration: none;
+  background-color: transparent;
+  /* cursor: -webkit-grabbing; cursor: grabbing; */
+}
+
+a#downloadBtn i
+{
+  text-decoration:none;
+  z-index: 5;
+  top: 3%; /*fix position*/
+  left: 28%;
+  color: #5E36FF;
+  
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(251, 253, 255, 0.69);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+  border-radius: 50%;
+  padding: 10px 10px;
+  width: 55px;
+  height: 55px;
+  text-align: center;
+}
+
+a#downloadBtn i:hover
+{
+  text-decoration: none;
+  background-color: none;
+  top: 2%;
+  cursor: pointer;
+}
+
+
+
+#sampleSite
+{
+  display: block;
+  border-radius: 50%;
+  width: 1500px;
+  height: 1500px;
+  margin-top: 5%;
+}
+
+#sampleSite h1
+{
+  left: 1%;
+  font-size: 50px;
+  margin-top: 5%;
+}
+
+#sampleSite h2
+{
+}
+
+
+#sampleSite p
+{
+  padding: 15px;
+  width: 500px;
+  justify-content: space-evenly;
+  text-align: left;
+}
+
+#sampleSite button
+{
+  font-family: 'Lexend Exa';
+  color: white;
+  font-size: 1em;
+  width: 120px;
+  height: 50px;
+  border-radius: 12px;
+}
+
+#sampleSite button:hover
+{
+  cursor: pointer;
+  font-size: 1em;
+}
+
+
+/*transition*/
+
+#sampleSite
+{
+  transition-delay: 200ms;
+}
+.hidden
+{
+  opacity: 0;
+  transition: all 1s;
+  filter: blur(5px);
+}
+
+.show 
+{
+  opacity: 1;
+  filter: blur(0);
+
 }

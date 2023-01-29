@@ -1,35 +1,97 @@
+/*font:  Lexend*/
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Exa:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 .swatch {
-  display: inline-block;
-  text-align: left;
+    margin: 7px;
+
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background-color: rgba(17, 25, 40, 0.75);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.125);
+
   }
 
 .palette_color {
   background: none;
   border: none;
   outline: none;
-  width: 150px;
   height: 100px;
-  border-radius: 10px;
+
 }
 
 .palette_color::-webkit-color-swatch-wrapper {
-  padding: 0;
 }
 .palette_color::-webkit-color-swatch {
   border: none;
 }
 
-.copier {
-  text-align: left;
+
+.norm button.copier {
+  padding: 0px 0px 0px 10px;
+  display: flex;
   border: none;
   background: none;
+  width: 100%;
+  color: white;
+  font-size: 12px;
+  font-family: 'Lexend Exa', sans-serif;
+  font-style: normal;
+  font-weight: 400;;
+  height: 20px;
 }
 
-.copier:hover {
-  background: yellow;
+
+.norm button.copier:hover {
+  font-size: 12.5px;
+  background-color: transparent;
+  cursor: -webkit-grabbing; cursor: grabbing;
 }
 
-a {
-  color: black;
-  text-decoration: none;
+
+button#hexC
+{
+  color:  #f4e180;
+  font-size: 15px;
+  text-indent:25px;
+}
+
+button#hexC:hover
+{
+  font-size: 16px;
+}
+
+hr
+{
+  opacity: 0.3;
+}
+
+/*transition*/
+.norm
+{
+  transition: all 1s;
+  filter: blur(5px);
+  transform: translateX(-100%);
+}
+
+.norm:nth-child(1)
+{transition-delay: 100ms;}
+
+.norm:nth-child(2)
+{transition-delay: 200ms;}
+
+.norm:nth-child(3)
+{transition-delay: 300ms;}
+
+.norm:nth-child(4)
+{transition-delay: 400ms;}
+
+.norm:nth-child(5)
+{transition-delay: 500ms;}
+
+
+.delay
+{
+  filter: blur(0);
+  transform: translateX(0);
 }
